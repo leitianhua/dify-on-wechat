@@ -17,29 +17,24 @@ from config import conf
     version="0.1",
     author="lanvent",
 )
-
-
 class Hello(Plugin):
-
-    group_welc_prompt = "请你随机使用一种风格说一句问候语来欢迎新用户\"{nickname}\"加入群聊。"
-    group_exit_prompt = "请你随机使用一种风格介绍你自己，并告诉用户输入#help可以查看帮助信息。"
-    patpat_prompt = "请你随机使用一种风格跟其他群用户说他违反规则\"{nickname}\"退出群聊。"
 
     def __init__(self):
         super().__init__()
         try:
             self.config = super().load_config()
             if not self.config:
+                logger.info("[Hello] 读取其他配置")
                 self.config = self._load_config_template()
             self.group_welc_fixed_msg = self.config.get("group_welc_fixed_msg", {})
-            self.group_welc_prompt = self.config.get("group_welc_prompt", self.group_welc_prompt)
-            self.group_exit_prompt = self.config.get("group_exit_prompt", self.group_exit_prompt)
-            self.patpat_prompt = self.config.get("patpat_prompt", self.patpat_prompt)
-            logger.info("[Hello] inited")
+            self.group_welc_prompt = self.config.get("group_welc_prompt")
+            self.group_exit_prompt = self.config.get("group_exit_prompt")
+            self.patpat_prompt = self.config.get("patpat_prompt")
+            logger.info("[Hello] 初始化成功")
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
         except Exception as e:
             logger.error(f"[Hello]初始化异常：{e}")
-            raise "[Hello] init failed, ignore "
+            raise "[Hello] 初始化失败, 忽略 "
 
     def on_handle_context(self, e_context: EventContext):
         if e_context["context"].type not in [
@@ -51,50 +46,62 @@ class Hello(Plugin):
             return
         msg: ChatMessage = e_context["context"]["msg"]
         group_name = msg.from_user_nickname
+
+        # 处理加入群组事件
         if e_context["context"].type == ContextType.JOIN_GROUP:
+            # 检查是否有群组欢迎消息配置
             if "group_welcome_msg" in conf() or group_name in self.group_welc_fixed_msg:
                 reply = Reply()
                 reply.type = ReplyType.TEXT
+                # 根据是否有为特定群组设置欢迎消息来决定回复内容
                 if group_name in self.group_welc_fixed_msg:
-                    reply.content = self.group_welc_fixed_msg.get(group_name, "")
+                    reply.content = self.group_welc_fixed_msg.get(group_name, "").format(nickname=msg.actual_user_nickname)
                 else:
-                    reply.content = conf().get("group_welcome_msg", "")
+                    reply.content = conf().get("group_welcome_msg", "").format(nickname=msg.actual_user_nickname)
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
                 return
-            e_context["context"].type = ContextType.TEXT
-            e_context["context"].content = self.group_welc_prompt.format(nickname=msg.actual_user_nickname)
-            e_context.action = EventAction.BREAK  # 事件结束，进入默认处理逻辑
-            if not self.config or not self.config.get("use_character_desc"):
-                e_context["context"]["generate_breaked_by"] = EventAction.BREAK
+
+            # 使用欢迎语，交给默认ai处理
+            if conf().get("group_welc_prompt"):
+                e_context["context"].type = ContextType.TEXT
+                e_context["context"].content = self.group_welc_prompt.format(nickname=msg.actual_user_nickname)
+                e_context.action = EventAction.BREAK
+
+                # 如果没有配置欢迎消息，则改为发送提示消息
+                if not self.config or not self.config.get("use_character_desc"):
+                    e_context["context"]["generate_breaked_by"] = EventAction.BREAK
+                return
+            e_context.action = EventAction.BREAK_PASS
             return
-        
+
+        # 处理退出群组事件
         if e_context["context"].type == ContextType.EXIT_GROUP:
-            if "group_exit_msg" in conf():
-                reply = Reply()
-                reply.type = ReplyType.TEXT
-                reply.content = conf().get("group_exit_msg", "")
-                e_context["reply"] = reply
-                e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
-                return
+            # 如果有配置退出群组时的消息，则发送
             if conf().get("group_chat_exit_group"):
                 e_context["context"].type = ContextType.TEXT
                 e_context["context"].content = self.group_exit_prompt.format(nickname=msg.actual_user_nickname)
                 e_context.action = EventAction.BREAK  # 事件结束，进入默认处理逻辑
                 return
-            e_context.action = EventAction.BREAK
-            return
-            
-        if e_context["context"].type == ContextType.PATPAT:
-            e_context["context"].type = ContextType.TEXT
-            e_context["context"].content = self.patpat_prompt
-            e_context.action = EventAction.BREAK  # 事件结束，进入默认处理逻辑
-            if not self.config or not self.config.get("use_character_desc"):
-                e_context["context"]["generate_breaked_by"] = EventAction.BREAK
+            e_context.action = EventAction.BREAK_PASS
             return
 
+        # 处理拍了拍事件
+        if e_context["context"].type == ContextType.PATPAT:
+            if conf().get('patpat_prompt'):
+                e_context["context"].type = ContextType.TEXT
+                e_context["context"].content = self.patpat_prompt
+                e_context.action = EventAction.BREAK  # 事件结束，进入默认处理逻辑
+                if not self.config or not self.config.get("use_character_desc"):
+                    e_context["context"]["generate_breaked_by"] = EventAction.BREAK
+                return
+            e_context.action = EventAction.BREAK_PASS
+            return
+
+        # 处理文本消息
         content = e_context["context"].content
         logger.debug("[Hello] on_handle_context. content: %s" % content)
+        # 对特定内容（"Hello"）的回复
         if content == "Hello":
             reply = Reply()
             reply.type = ReplyType.TEXT
@@ -105,6 +112,7 @@ class Hello(Plugin):
             e_context["reply"] = reply
             e_context.action = EventAction.BREAK_PASS  # 事件结束，并跳过处理context的默认逻辑
 
+        # 对"Hi"的回复
         if content == "Hi":
             reply = Reply()
             reply.type = ReplyType.TEXT
@@ -112,6 +120,7 @@ class Hello(Plugin):
             e_context["reply"] = reply
             e_context.action = EventAction.BREAK  # 事件结束，进入默认处理逻辑，一般会覆写reply
 
+        # 对"End"的特殊处理，将其转换为图片创建请求
         if content == "End":
             # 如果是文本消息"End"，将请求转换成"IMAGE_CREATE"，并将content设置为"The World"
             e_context["context"].type = ContextType.IMAGE_CREATE

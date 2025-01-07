@@ -308,8 +308,11 @@ class ChatChannel(Channel):
     # 处理好友申请
     def _build_friend_request_reply(self, context):
         if isinstance(context.content, dict) and "Content" in context.content:
+            # 记录好友请求的内容
             logger.info("friend request content: {}".format(context.content["Content"]))
-            if context.content["Content"] in conf().get("accept_friend_commands", []):
+            # 检查内容是否在配置中定义的接受好友命令列表中
+            accept_commands = conf().get("accept_friend_commands", [])
+            if "ALL_FRIEND" in accept_commands or context.content["Content"] in accept_commands:
                 return Reply(type=ReplyType.ACCEPT_FRIEND, content=True)
             else:
                 return Reply(type=ReplyType.ACCEPT_FRIEND, content=False)

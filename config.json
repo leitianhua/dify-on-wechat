@@ -1,0 +1,36 @@
+{
+    "accept_friend_commands": [
+        "加好友",
+        "ALL_FRIEND"
+    ],
+    "accept_friend_msg": "(≧ω≦)你好呀，我是可爱尼～🌈\n你的搜索小助手！🐾\n📺 想看剧？(๑•̀ㅂ•́)و✧\n试试【搜XX】\n🌐 想要别的资源？(≧∇≦)\n那就试试【全网搜XX】\n💬 想要加入我的资源小窝吗？\n里面会及时更新最新资源！\n回复【进群】就可以咯～🏠💖",
+    "channel_type": "gewechat",
+    "gewechat_app_id": "wx_Tum8JumsMyvwzSknk6l4c",
+    "gewechat_base_url": "http://192.168.8.181:2531/v2/api",
+    "gewechat_callback_url": "http://192.168.8.188:9919/v2/api/callback/collect",
+    "gewechat_download_url": "http://192.168.8.181:2532/download",
+    "gewechat_token": "cfd70cf64cc94b1e9afc270273c93d02",
+    "group_chat_prefix": [
+        "@可爱尼"
+    ],
+    "group_name_white_list": [
+        "ChatGPT测试群",
+        "短剧搜索",
+        "可爱尼的资源宝库",
+        "ALL_GROUP"
+    ],
+    "hot_reload": false,
+    "image_recognition": true,
+    "model": "qwen2.5:14b",
+    "moonshot_api_key": "sk-NYEamEMFz1ag2qFGvpiMnSv6GBqj9A5NwQCpNueMjhl7SIWW",
+    "open_ai_api_base": "http://192.168.8.181:8000/v1",
+    "open_ai_api_key": "sk-2e55fda130354dd2a831bef86f6efa18",
+    "single_chat_prefix": [
+        ""
+    ],
+    "single_chat_reply_prefix": "",
+    "speech_recognition": true,
+    "text_to_voice": "dify",
+    "voice_reply_voice": true,
+    "voice_to_text": "dify"
+}

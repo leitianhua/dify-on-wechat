@@ -1,0 +1,72 @@
+{
+    "plugins": {
+        "Godcmd": {
+            "enabled": true,
+            "priority": 999
+        },
+        "Keyword": {
+            "enabled": false,
+            "priority": 900
+        },
+        "My": {
+            "enabled": true,
+            "priority": 100
+        },
+        "GroupInvitation": {
+            "enabled": true,
+            "priority": 100
+        },
+        "Banwords": {
+            "enabled": false,
+            "priority": 100
+        },
+        "linkai": {
+            "enabled": false,
+            "priority": 99
+        },
+        "METASO": {
+            "enabled": true,
+            "priority": 99
+        },
+        "meme": {
+            "enabled": true,
+            "priority": 98
+        },
+        "sakuraTools": {
+            "enabled": true,
+            "priority": 88
+        },
+        "Apilot": {
+            "enabled": true,
+            "priority": 88
+        },
+        "JinaSum": {
+            "enabled": false,
+            "priority": 10
+        },
+        "tool": {
+            "enabled": true,
+            "priority": 0
+        },
+        "Role": {
+            "enabled": false,
+            "priority": 0
+        },
+        "CustomDifyApp": {
+            "enabled": true,
+            "priority": 0
+        },
+        "TaskScheduler": {
+            "enabled": true,
+            "priority": -1
+        },
+        "Hello": {
+            "enabled": true,
+            "priority": -1
+        },
+        "Finish": {
+            "enabled": true,
+            "priority": -999
+        }
+    }
+}

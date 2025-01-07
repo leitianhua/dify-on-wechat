@@ -15,6 +15,7 @@ current_process_instance = None
 def start_channel(channel_name: str):
     channel = channel_factory.create_channel(channel_name)
     available_channels = [
+        "gewechat",
         "wx",
         "terminal",
         "wechatmp",
@@ -127,4 +128,4 @@ with gr.Blocks() as demo:
 if __name__ == "__main__":
     start_run()
     load_config()
-    demo.launch(server_name="0.0.0.0", server_port=conf().get("web_ui_port", 7860))
+    demo.launch(server_name="127.0.0.1", server_port=conf().get("web_ui_port", 7860))

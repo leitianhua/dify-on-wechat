@@ -1,0 +1,380 @@
+{
+  "godcmd": {
+    "password": "1",
+    "admin_users": []
+  },
+  "sakuraTools": {
+    "dog_diary_keyword": [
+      "舔狗日记",
+      "舔狗日常"
+    ],
+    "joke_keyword": [
+      "笑话",
+      "讲个笑话",
+      "来个笑话",
+      "来点笑话"
+    ],
+    "moyu_keyword": [
+      "摸鱼",
+      "摸鱼日历"
+    ],
+    "acg_keyword": [
+      "二次元老婆",
+      "ACG美图",
+      "acg美图",
+      "纸片人老婆",
+      "动漫图"
+    ],
+    "pixiv_keyword": [
+      "pixiv"
+    ],
+    "young_girl_keyword": [
+      "小姐姐"
+    ],
+    "beautiful_keyword": [
+      "美女"
+    ],
+    "chongbuluo_keyword": [
+      "虫部落热搜"
+    ],
+    "kfc_keyword": [
+      "肯德基",
+      "kfc",
+      "KFC",
+      "疯狂星期四"
+    ],
+    "wyy_keyword": [
+      "网抑云",
+      "wyy"
+    ],
+    "newspaper_keyword": [
+      "日报",
+      "早报",
+      "速读报",
+      "快报"
+    ],
+    "fortune_keyword": [
+      "运势"
+    ],
+    "draw_card_keyword": [
+      "抽卡"
+    ],
+    "tarot_single_keyword": [
+      "抽牌",
+      "抽一张牌"
+    ],
+    "tarot_three_keyword": [
+      "三牌阵",
+      "三张牌阵",
+      "过去-现在-未来阵"
+    ],
+    "tarot_cross_keyword": [
+      "凯尔特十字",
+      "凯尔特十字牌阵",
+      "十字牌阵",
+      "十字阵"
+    ],
+    "huang_li_keyword": [
+      "黄历",
+      "老黄历",
+      "今日黄历",
+      "黄历查询"
+    ],
+    "zwlq_chou_qian_keyword": [
+      "抽签",
+      "抽签查询",
+      "抽签结果",
+      "每日一签"
+    ],
+    "zwlq_jie_qian_keyword": [
+      "解签",
+      "解签查询",
+      "解签结果"
+    ],
+    "dytj_gua_tu_keyword": [
+      "卦图"
+    ],
+    "dytj_daily_gua_tu_keyword": [
+      "每日一卦"
+    ],
+    "hot_search_keyword": [
+      "热搜"
+    ],
+    "hot_search_baidu_keyword": [
+      "百度热搜"
+    ],
+    "hot_search_weibo_keyword": [
+      "微博热搜"
+    ],
+    "ai_find_keyword": [
+      "AI搜索",
+      "ai搜索"
+    ],
+    "ai_draw_keyword": [
+      "画一个",
+      "画个",
+      "画一下",
+      "画一张",
+      "画一张",
+      "画一幅",
+      "画一只",
+      "画一头"
+    ],
+    "mei_hua_yi_shu_keyword": [
+      "算算",
+      "算一算",
+      "算一卦",
+      "卜卦",
+      "算一下",
+      "来一卦",
+      "开一卦"
+    ]
+  },
+  "My": {
+    "src_url": "ks.jizhi.me",
+    "cookie1": "_UP_A4A_11_=wb965167905b4372a78e89ad55a748af; tfstk=fqGmGkigDxyXGyQ9mbVXadVbdK9-liN_xcCTX5EwUur5HoFt755ZXVFYQngtqlmt5olYkoUZj0E76ohxHAbjZDfOMn9j71VT_HKp9B3Xl5NwvSYNrDrb54ra5fw2wqN__3nCbt5KlDcYmlOg_UVzSP1a_1oaU4r75PS47s8ozuaa_sra7z7z5y74brlETarxbmGyJIoWJbojjb403L3441zSZr20Yqrh_1WUo-qEuuxd4f3LUVwi1N1gLqkIfyoV0hqsZ4lqLD-RHok3S2HiuI5zMjgqLRlefOo3ic2Eg8bNTqg4D74rTFBQ2bqxbj2yJ62TaXeUgYpWDRF0-cljmNfZY43KG8GMxgrsHyNzSfTFIl2N4CXPLz051z8tZO6_3zauA7aKeaw4tJRerUXEd-z7uBLkrO6_3zauvUYlLHw4PrRd.; _UP_F7E_8D_=0z44HdIBxZZqPa25Ub0TVXltLXQDyq1RwsMdKhXvERQvOk1AmQkNxLlLOSi3D%2FTTUCGf%2B5hDnkxLHpvA%2Fhicy1HUTu2LBlCPom4qTWeMFqCgN55FQx3lIyu%2B1OsWIKjG1w4pOGWcZjvuo4m2jHof9eRj66wpeTPO4r7NBD%2F4wEE0IpjIBHWretgcndtvmRjOjVn%2BnAjcaowXy52%2F9kbLMbzk4nczcPLP1rSgCMVm5ws2Z%2BPyTAVLm9UiDHFvPYOejtppHI1D5BWo9iWpC3nRSU7a6icULwkUypG1CzPKycsVOMEdD6uzZJXMxBnUatpyAHLu79tlMNqP8TGNMQXXgvSqK5ufzR58ZeivnehV0qE%2FWt1yDEDt%2BfWrmT4mVs6zZWXvqpzmoV3MeygIUCEakjmqUpi%2BMoCaK%2BK%2BYrCYUbg6F8u7yQFbh%2F0Q7RCSfK2U6tAXQttwc%2FtDK7HYGyvolg%3D%3D; _UP_D_=pc; __pus=481757cbfeebbb1d88612537ebeac5c1AATbouZ3q4A42xryvioZHiMLj1oA0B8rQCQAp+Wo1Y4DuOIWCQG+mRmcbHRzmsEmJuLDxXfbcUwJRoMYnyS3neQC; __kp=27e614c0-7a7f-11ef-87f7-f9e5c62a9c04; __kps=AATYIjLlcIEeoRU+aMylrVCd; __ktd=R9BUN0vqQ38VUloW/uHx9g==; __uid=AATYIjLlcIEeoRU+aMylrVCd; __puus=7b97a93c7fce17bf9f127762d5dfcfd6AATZByE6Qo9Tzb02mHpZVvp5HZWKrXDF2sjXr6caszU/7W0aUYNc9/ZLMQ4lBangoP/a5mynJ4uVgbwnf56weT9J/I67c2pL7tK9CAck9p3OXHZIWUXFfSYorssPynK4mM4bbVRxHncyQ/yoEFgUw0vINErPixpqcnhe58YM9ceUXaQyax31PLbx28+xG20e1onZOutSM87uWz84PHoABO12",
+    "save_dir1": "17bd2d4dfbeb4ed9a7c2bde5bba73a15",
+    "cookie": "b-user-id=d9fbd89a-7e69-ad5f-796c-f283169f7030; isg=BLKy4CoqAePk_z3fUL7Oas-FA_iUQ7bdscRo4nyL_mVQD1IJZNVQ7bts-6uzfy51; tfstk=f98oHci6V3S7FJqcim7SYZOce1mYF7_ChpUdpwBE0tWfpbOpTwzepBQRYYOpn9W2KkWEN653x19wvbGIEKcHeBadUTLd-MJOzMtRpTBh-B9iMA3tWQO5RZktBVnaHHBlR9ud8QbQVP_EBA3YDSSSewJRYRLQnIWft_yFUp740664Y9JFUiyVs1_F8wJFgI5Osk5U8gyqut1F89JF8jAT8OYelEkRXxjsNTCDo_jqDQW4LiTcZgXwaU4U855lqORPnAgotIS2OMYQOyjHah9C_LyrK9TDgU-wQxERUhfH6HArzr7JPQ-NYFkQYQQREZ8yjWzeiaXcvejbExXwPI81ui3ZsI8XeQTD9WuFMdB2NU7n7f_lzT7cGeHbz9x2YUI5R8khdEA2zHjPsorwM2aCgXL4AksPGsXTQdsG_HpeJkhmili54s1-Bjc0AksPGsXtijq_dg5fwAC..; _UP_A4A_11_=wb96c1edcce244058eef7b9a0b04541f; _UP_D_=pc; _UP_F7E_8D_=b0PSLv5dciNJR7POGgS3AJWwAsSGsVzdGUOU%2BWEa1%2FCQ9pt%2Flxcgspx%2F7jdZxm88%2BDZR%2F3OCavVVlSrlA%2FHE35guhUiWeFXSFrpiz7iQup7LB%2BL83Dn0lIDh36hnRcflW%2FQJYV4NNTtd2aHHLsro3PELcRKHSujuLbPeoOdhK0F%2B4CVxwd%2BA5kyclW53hcuTOm0qJXeruCsHvfOHRIiaNUy8%2FinnOmOa%2Bto1XMlORGQQCgydnJFD4oInCxl1g1C0s1YxLzJs52lWdoIk19nvWfytP81cJKxfv1GfwBTrR0bS%2FBGt91fGhZMwyZvOKbU%2F8ZkbgrGvmwxqzivluzXqQHrmHUwax9fVlczEGdRq2nJkSi56LgyDrXpsyYdGYA0F4Cj%2Fntr80vkUTca5E0LqLcBEt4UN6jDY; __pus=d4b4ba104bfbc7433c8e9235597ff76cAASDxWuXTR1OiVVovAdD9om4/GtkCTmTqugcP2jheBR9TGMkZPPKQsYQJhZaHxoAWu1+qkCX5bZtW5nFwq4KpwHi; __kp=b5377c00-c35a-11ef-996b-63e52b76dc2c; __kps=AAR4uAqdyWJqDmR/hvGc4/Ox; __ktd=6/QGUbqZLzTrYbWbzChb4g==; __uid=AAR4uAqdyWJqDmR/hvGc4/Ox; __puus=242c36535237a82908254c9bd4879722AASF8MU0hSGDuoLtbQ2dHfyu6bfgQ1awX3UeU377gqIXT/NI1XnUd7gkZIFZ4D3UsW86j089oqJjPmNfI453CfJRC2yyEBYqwGK76vlW4msLfGYvyql/cD1aRnLUXwFgUGiXlrWGmjuSZNyCPyNf5aJJKPNIsS0XWCLfLU4Ba+Vst9lgv4lDf7ST5+E8jbioI3HCDUCHMkdSTVYvW8SeUVnh",
+    "save_dir": "6a365fbbfb6e41cd91f72bc36704845f",
+    "ad_keywords": [
+      "广告 ",
+      "ad ",
+      "推广 ",
+      "关注 ",
+      "公众号 ",
+      "小程序 ",
+      "点击链接 ",
+      "加群 ",
+      "QQ群 ",
+      "微信群 ",
+      "电报群 ",
+      "免费资源 ",
+      "获取更多 ",
+      "更多资源 ",
+      "readme ",
+      "README ",
+      "说明 ",
+      "必读 ",
+      "打赏 ",
+      "赞赏 ",
+      "支付宝 ",
+      "微信支付 ",
+      "关注即可 ",
+      "关注后 ",
+      "关注公众号 ",
+      "加入群 ",
+      "入群 ",
+      "资源来源网络，30分钟后删除，请及时保存 "
+    ]
+  },
+  "banwords": {
+    "action": "replace",
+    "reply_filter": true,
+    "reply_action": "ignore"
+  },
+  "tool": {
+    "tools": [
+      "url-get",
+      "meteo-weather"
+    ],
+    "kwargs": {
+      "top_k_results": 2,
+      "no_default": false,
+      "model_name": "gpt-3.5-turbo"
+    }
+  },
+  "hello": {
+    "group_welc_fixed_msg": {
+      "ChatGPT测试群": "\uD83C\uDF89 欢迎\"{nickname}\"加入群聊！\n\uD83E\uDD73 与我对话记得【艾特】我哟~\n\uD83C\uDFA8 了解我的详细功能请输入：#help \n————————————\n\uD83D\uDCDA 发送关键词获取特定信息！\n\uD83C\uDF89 娱乐与资讯：\n  \uD83C\uDF05 早报: 发送“早报”获取早报。\n  \uD83D\uDC1F 摸鱼: 发送“摸鱼”获取摸鱼人日历。\n  \uD83D\uDD25 热榜: 发送“xx热榜”查看支持的热榜。\n  \uD83D\uDD25 八卦: 发送“八卦”获取明星八卦\n\uD83D\uDD0D 查询工具：\n  \uD83C\uDF26 天气: 发送“城市+天气”查天气，如“北京天气”。\n  \uD83D\uDCE6 快递: 发送“快递+单号”查询快递状态。如“快递112345655”\n  \uD83C\uDF0C 星座: 发送星座名称查看今日运势，如“白羊座”。",
+      "可爱尼的资源宝库": "欢迎\"{nickname}\"加入群聊！祝您在这里度过愉快的时光~ \uD83C\uDF1F\n\n--------------------\n【记得艾特我！】搜剧命令：搜XX \n 其他资源搜索：全网搜XX"
+    },
+    "group_welc_prompt": "",
+    "group_exit_prompt": "",
+    "patpat_prompt": "",
+    "use_character_desc": false
+  },
+  "GroupInvitation": {
+    "进群1": "ChatGPT测试群",
+    "进群": "可爱尼的资源宝库"
+  },
+  "meme": {
+    "one_PicEwo": {
+      "跟我去二次元": "acg_entrance",
+      "添乱": "add_chaos",
+      "上瘾": "addiction",
+      "一样": "alike",
+      "永远喜欢": "always_like",
+      "诱拐": "anti_kidnap",
+      "阿尼亚喜欢": "anya_suki",
+      "鼓掌": "applaud",
+      "打工人": "back_to_work",
+      "拍头": "beat_head",
+      "啃": "bite",
+      "高血压": "blood_pressure",
+      "手稿": "bocchi_draft",
+      "奶茶": "bubble_tea",
+      "草神": "caoshen_bite",
+      "画": "capoo_draw",
+      "撕": "rip",
+      "咖波撕": "capoo_rip",
+      "蹭": "capoo_rub",
+      "撞": "capoo_strike",
+      "字符画": "charpic",
+      "追": "chase_train",
+      "国旗": "china_flag",
+      "小丑": "clown",
+      "迷惑": "confuse",
+      "兑奖": "coupon",
+      "捂脸": "cover_face",
+      "爬": "crawl",
+      "亲亲": "decent_kiss",
+      "典": "dianzhongdian",
+      "恐龙": "dinosaur",
+      "涣散": "distracted",
+      "离婚协议": "divorce",
+      "狗都不玩": "dog_dislike",
+      "痴": "dog_of_vtb",
+      "不要靠近": "dont_go_near",
+      "别碰": "dont_touch",
+      "吃": "eat",
+      "要上吗": "fight_with_sunuo",
+      "满脑子": "fill_head",
+      "闪瞎": "flash_blind",
+      "关注": "follow",
+      "拿": "frieren_take",
+      "哈哈镜": "funny_mirror",
+      "垃圾桶": "garbage",
+      "启动": "genshin_start",
+      "鬼畜": "guichu",
+      "手枪": "gun",
+      "锤": "hammer",
+      "打穿": "hit_screen",
+      "抱紧": "hold_tight",
+      "抱大腿": "hug_leg",
+      "胡桃啃": "hutao_bite",
+      "不文明": "incivilization",
+      "采访": "interview",
+      "急急国王": "jiji_king",
+      "啾啾": "jiujiu",
+      "跳": "jump",
+      "万花筒": "kaleidoscope",
+      "指": "karyl_point",
+      "远离": "keep_away",
+      "踢球": "kick_ball",
+      "卡比锤": "kirby_hammer",
+      "可莉吃": "klee_eat",
+      "敲": "knock",
+      "偷学": "learn",
+      "横跳": "left_right_jump",
+      "让我进去": "let_me_in",
+      "无穷小": "lim_x_0",
+      "听音乐": "listen_music",
+      "小天使": "little_angel",
+      "加载中": "loading",
+      "看扁": "look_flat",
+      "看图标": "look_this_icon",
+      "循环": "loop",
+      "寻狗启示": "lost_dog",
+      "永远爱你": "love_you",
+      "交个朋友": "make_friend",
+      "结婚申请": "marriage",
+      "上香": "mourning",
+      "我朋友说": "my_friend",
+      "我老婆": "my_wife",
+      "需要": "need",
+      "无响应": "no_response",
+      "请假条": "note_for_leave",
+      "out": "out",
+      "加班": "overtime",
+      "这像画吗": "paint",
+      "小画家": "painter",
+      "拍": "pat",
+      "完美": "perfect",
+      "摸": "petpet",
+      "捏": "pinch",
+      "顶": "play",
+      "玩游戏": "play_game",
+      "一起玩": "play_together",
+      "出警": "police",
+      "警察": "police1",
+      "搞": "pound",
+      "打印": "printing",
+      "舔": "prpr",
+      "打拳": "punch",
+      "举": "raise_image",
+      "看书": "read_book",
+      "怒撕": "rip_angrily",
+      "诈尸": "rise_dead",
+      "滚": "roll",
+      "三维旋转": "rotate_3d",
+      "快逃": "run_away",
+      "安全感": "safe_sense",
+      "挠头": "scratch_head",
+      "刮刮乐": "scratchcard",
+      "震惊": "shock",
+      "坐的住": "sit_still",
+      "砸": "smash",
+      "踩": "step_on",
+      "炖": "stew",
+      "科目三": "subject3",
+      "吸": "suck",
+      "精神支柱": "support",
+      "回旋转": "swirl_turn",
+      "嘲讽": "taunt",
+      "唐可可举牌": "tankuku_raisesign",
+      "讲课": "teach",
+      "拿捏": "tease",
+      "望远镜": "telescope",
+      "想什么": "think_what",
+      "这是鸡": "this_chicken",
+      "丢": "throw",
+      "抛": "throw_gif",
+      "捶": "thump",
+      "锤爆": "thump_wildly",
+      "紧贴": "tightly",
+      "一起": "together",
+      "嘲笑": "tom_tease",
+      "上坟": "tomb_yeah",
+      "恍惚": "trance",
+      "转": "turn",
+      "搓": "twist",
+      "震动": "vibrate",
+      "墙纸": "wallpaper",
+      "胡桃平板": "walnut_pad",
+      "胡桃放大": "walnut_zoom",
+      "洗衣机": "washer",
+      "波纹": "wave",
+      "我想上的": "what_I_want_to_do",
+      "最想要的东西": "what_he_wants",
+      "为什么@我": "why_at_me",
+      "为什么要有手": "why_have_hands",
+      "风车转": "windmill_turn",
+      "木鱼": "wooden_fish",
+      "膜拜": "worship",
+      "致电": "you_should_call"
+    },
+    "two_PicEwo": {
+      "揍": "beat_up",
+      "击剑": "fencing",
+      "亲": "kiss",
+      "贴贴": "rub"
+    }
+  },
+  "Apilot": {
+    "alapi_token": "haEoRDK5oamLmLmI",
+    "morning_news_text_enabled": false
+  },
+  "JinaSum": {
+    "jina_reader_base": "https://r.jina.ai",
+    "open_ai_api_base": "https://api.openai.com/v1",
+    "open_ai_api_key": "sk-xxx",
+    "open_ai_model": "gpt-4o-mini",
+    "max_words": 8000,
+    "white_url_list": [],
+    "black_url_list": [
+      "https://support.weixin.qq.com",
+      "https://channels-aladin.wxqcloud.qq.com"
+    ],
+    "prompt": "我需要对下面的文本进行总结，总结输出包括以下三个部分：\n📖 一句话总结\n🔑 关键要点,用数字序号列出3-5个文章的核心内容\n🏷 标签: #xx #xx\n。不要使用'**'加粗标题优化输出格式。"
+  }
+}

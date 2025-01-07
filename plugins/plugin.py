@@ -18,14 +18,14 @@ class Plugin:
         if not plugin_conf:
             # 全局配置不存在，则获取插件目录下的配置
             plugin_config_path = os.path.join(self.path, "config.json")
-            logger.debug(f"loading plugin config, plugin_config_path={plugin_config_path}, exist={os.path.exists(plugin_config_path)}")
+            logger.debug(f"获取插件目录下的配置, 插件配置目录={plugin_config_path}, exist={os.path.exists(plugin_config_path)}")
             if os.path.exists(plugin_config_path):
                 with open(plugin_config_path, "r", encoding="utf-8") as f:
                     plugin_conf = json.load(f)
 
                 # 写入全局配置内存
                 write_plugin_config({self.name: plugin_conf})
-        logger.debug(f"loading plugin config, plugin_name={self.name}, conf={plugin_conf}")
+        logger.debug(f"写入全局配置内存, 插件名称={self.name}, 配置={plugin_conf}")
         return plugin_conf
 
     def save_config(self, config: dict):
@@ -43,7 +43,7 @@ class Plugin:
                     json.dump(config, f, indent=4, ensure_ascii=False)
 
         except Exception as e:
-            logger.warn("save plugin config failed: {}".format(e))
+            logger.warn("保存插件配置失败: {}".format(e))
 
     def get_help_text(self, **kwargs):
         return "暂无帮助信息"

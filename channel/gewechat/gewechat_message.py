@@ -73,11 +73,16 @@ import xml.etree.ElementTree as ET
 }
 """
 
+
 class GeWeChatMessage(ChatMessage):
     def __init__(self, msg, client: GewechatClient):
         super().__init__(msg)
         self.msg = msg
-        self.msg_id = msg['Data']['NewMsgId']
+        try:
+            self.msg_id = msg['Data']['NewMsgId']
+        except:
+            logger.info(f"KeyError: 'Data'    :{str(msg)}")
+            raise
         self.create_time = msg['Data']['CreateTime']
         self.is_group = True if "@chatroom" in msg['Data']['FromUserName']['string'] else False
         self.client = client
@@ -95,7 +100,7 @@ class GeWeChatMessage(ChatMessage):
                 silk_file_path = TmpDir().path() + silk_file_name
                 with open(silk_file_path, "wb") as f:
                     f.write(silk_data)
-                #TODO: silk2mp3
+                # TODO: silk2mp3
                 self.content = silk_file_path
         elif msg_type == 3:  # Image message
             self.ctype = ContextType.IMAGE
@@ -222,15 +227,15 @@ class GeWeChatMessage(ChatMessage):
                         atuserlist = atuserlist_elem.text
                         self.is_at = self.to_user_id in atuserlist
                         xml_parsed = True
-                        logger.debug(f"[gewechat] is_at: {self.is_at}. atuserlist: {atuserlist}")
+                        logger.debug(f"[gewechat] 是否被 at: {self.is_at}. atuserlist: {atuserlist}")
                 except ET.ParseError:
                     pass
-            
+
             # 只有在XML解析失败时才从PushContent中判断
             if not xml_parsed:
                 self.is_at = '在群聊中@了你' in self.msg.get('Data', {}).get('PushContent', '')
-                logger.debug(f"[gewechat] Parse is_at from PushContent. self.is_at: {self.is_at}")
-            
+                logger.debug(f"[gewechat] 从 PushContent 中解析是否被 at. self.is_at: {self.is_at}")
+
             # 如果是群消息，更新content为实际内容（去掉发送者ID）
             if ':' in self.content:
                 self.content = self.content.split(':', 1)[1].strip()
@@ -239,7 +244,7 @@ class GeWeChatMessage(ChatMessage):
             self.actual_user_id = self.other_user_id
             self.actual_user_nickname = self.other_user_nickname
 
-        self.my_msg = self.msg['Wxid'] == self.from_user_id # 消息是否来自自己
+        self.my_msg = self.msg['Wxid'] == self.from_user_id  # 消息是否来自自己
 
     def download_voice(self):
         try:
@@ -247,7 +252,7 @@ class GeWeChatMessage(ChatMessage):
             with open(self.content, "wb") as f:
                 f.write(voice_data)
         except Exception as e:
-            logger.error(f"[gewechat] Failed to download voice file: {e}")
+            logger.error(f"[gewechat] 下载语音文件失败: {e}")
 
     def download_image(self):
         try:
@@ -255,25 +260,25 @@ class GeWeChatMessage(ChatMessage):
                 # 尝试下载高清图片
                 image_info = self.client.download_image(app_id=self.app_id, xml=self.msg['Data']['Content']['string'], type=1)
             except Exception as e:
-                logger.warning(f"[gewechat] Failed to download high-quality image: {e}")
+                logger.warning(f"[gewechat] 下载高清图片失败: {e}")
                 # 尝试下载普通图片
                 image_info = self.client.download_image(app_id=self.app_id, xml=self.msg['Data']['Content']['string'], type=2)
             if image_info['ret'] == 200 and image_info['data']:
                 file_url = image_info['data']['fileUrl']
-                logger.info(f"[gewechat] Download image file from {file_url}")
+                logger.info(f"[gewechat] 从 {file_url} 下载图片文件")
                 download_url = conf().get("gewechat_download_url").rstrip('/')
                 full_url = download_url + '/' + file_url
                 try:
                     file_data = requests.get(full_url).content
                 except Exception as e:
-                    logger.error(f"[gewechat] Failed to download image file: {e}")
+                    logger.error(f"[gewechat] 下载图片文件失败: {e}")
                     return
                 with open(self.content, "wb") as f:
                     f.write(file_data)
             else:
-                logger.error(f"[gewechat] Failed to download image file: {image_info}")
+                logger.error(f"[gewechat] 下载图片文件失败: {image_info}")
         except Exception as e:
-            logger.error(f"[gewechat] Failed to download image file: {e}")
+            logger.error(f"[gewechat] 下载图片文件失败: {e}")
 
     def prepare(self):
         if self._prepare_fn:

@@ -330,7 +330,7 @@ def load_config():
         logger.setLevel(logging.DEBUG)
         logger.debug("[INIT] set log level to DEBUG")
 
-    logger.info("[INIT] load config: {}".format(drag_sensitive(config)))
+    logger.info("[INIT] 加载配置: {}".format(drag_sensitive(config)))
 
     config.load_user_datas()
 
