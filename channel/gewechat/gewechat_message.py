@@ -89,10 +89,10 @@ class GeWeChatMessage(ChatMessage):
 
         msg_type = msg['Data']['MsgType']
         self.app_id = conf().get("gewechat_app_id")
-        if msg_type == 1:  # Text message
+        if msg_type == 1:  # 文本消息
             self.ctype = ContextType.TEXT
             self.content = msg['Data']['Content']['string']
-        elif msg_type == 34:  # Voice message
+        elif msg_type == 34:  # 语音消息
             self.ctype = ContextType.VOICE
             if 'ImgBuf' in msg['Data'] and 'buffer' in msg['Data']['ImgBuf'] and msg['Data']['ImgBuf']['buffer']:
                 silk_data = base64.b64decode(msg['Data']['ImgBuf']['buffer'])
@@ -102,14 +102,23 @@ class GeWeChatMessage(ChatMessage):
                     f.write(silk_data)
                 # TODO: silk2mp3
                 self.content = silk_file_path
-        elif msg_type == 3:  # Image message
+        elif msg_type == 3:  # 图片消息
             self.ctype = ContextType.IMAGE
             self.content = TmpDir().path() + str(self.msg_id) + ".png"
             self._prepare_fn = self.download_image
+        elif msg_type == 47:  # 表情包
+            logger.info(f"当前消息表情包,msg:{str(msg)}")
         elif msg_type == 49:  # 引用消息，小程序，公众号等
-            content_xml = msg['Data']['Content']['string']
+            content_msg = msg['Data']['Content']['string']
+            # content_xml = content_msg[content_msg.find('<?xml'):]
+            content_xml = content_msg[content_msg.find('<'):]
+            root = None
             # 解析XML获取内容
-            root = ET.fromstring(content_xml)
+            try:
+                root = ET.fromstring(content_xml)
+            except ET.ParseError as e:
+                print(f"解析XML获取内容 :{content_msg}")
+                print(f"解析XML出错：{e}")
             appmsg = root.find('appmsg')
 
             if appmsg is not None:
@@ -143,7 +152,8 @@ class GeWeChatMessage(ChatMessage):
                 self.ctype = ContextType.TEXT
                 self.content = content_xml
         else:
-            raise NotImplementedError("Unsupported message type: Type:{}".format(msg_type))
+            # raise NotImplementedError("不支持消息类型: Type:{}".format(msg_type))
+            logger.error(f"不支持消息类型: Type:{msg_type}  msg:{str(msg)}")
 
         self.from_user_id = msg['Data']['FromUserName']['string']
         self.to_user_id = msg['Data']['ToUserName']['string']
@@ -237,7 +247,7 @@ class GeWeChatMessage(ChatMessage):
                 logger.debug(f"[gewechat] 从 PushContent 中解析是否被 at. self.is_at: {self.is_at}")
 
             # 如果是群消息，更新content为实际内容（去掉发送者ID）
-            if ':' in self.content:
+            if self.content is not None and ':' in self.content:
                 self.content = self.content.split(':', 1)[1].strip()
         else:
             # 如果不是群聊消息，保持结构统一，也要设置actual_user_id和actual_user_nickname
