@@ -13,8 +13,9 @@ from typing import List, Any
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from plugins.my.quark_src import QURAK
+from plugins.my.src_search import SrcSearch
 from plugins.my.quark_utils import Quark
+from baidu import Baidu
 
 
 @plugins.register(
@@ -46,10 +47,23 @@ class My(Plugin):
             # ''')
 
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
+
+            # 开启一个线程每分钟清除过期资源
+            self.clear_expired_resources_thread = threading.Thread(target=self.clear_expired_resources)
+            self.clear_expired_resources_thread.daemon = True  # 设置为守护线程，防止主线程退出时子线程还在运行
+            self.clear_expired_resources_thread.start()
+
             logger.info("[My] 初始化成功")
         except Exception as e:
             logger.warn("[My] 初始化失败")
             raise e
+
+    # 每分钟清除过期资源
+    def clear_expired_resources(self):
+        while True:
+            quark = Quark()
+            quark.del_expired_resources(self.conf.get("expired_time", 30))
+            time.sleep(60)  # 每分钟执行一次
 
     # 这个事件主要用于处理上下文信息。当用户发送消息时，系统会触发这个事件，以便根据上下文来决定如何响应用户的请求。它通常用于获取和管理对话的上下文状态。
     def on_handle_context(self, context: EventContext):
@@ -64,8 +78,8 @@ class My(Plugin):
 
         # 获取消息
         msg_content = context["context"].content.strip()
-        logger.info(f"[my]当前监听信息： {msg_content}")
-        logger.info(f'[my]当前配置 conf： {conf()}')
+        logger.debug(f"[my]当前监听信息： {msg_content}")
+        logger.debug(f'[my]当前配置 conf： {conf()}')
 
         # "搜剧", "搜", "全网搜"
         if any(msg_content.startswith(prefix) for prefix in ["搜剧", "搜", "全网搜"]) and not msg_content.startswith("搜索"):
@@ -119,8 +133,8 @@ class My(Plugin):
             # http 全网搜 自定义
             def to_search_all_1(title):
                 def fetch_data(method_name: str, qry_key: str) -> Any:
-                    quark = QURAK()
-                    method = getattr(quark, method_name, None)
+                    src_search = SrcSearch()
+                    method = getattr(src_search, method_name, None)
                     if method is not None:
                         return method(qry_key)
                     return None
@@ -144,7 +158,8 @@ class My(Plugin):
                 # 创建一个新的列表来存储去重后的数据
                 unique_data = []
                 # 转存
-                quark = Quark(self.conf)
+                quark = Quark()
+                baidu = Baidu(pconf("my"))
                 i = 1
                 # 遍历合并后的数据，按链接去重
                 for future in futures:
@@ -157,7 +172,15 @@ class My(Plugin):
                             # 转存
                             url = item['url']
                             try:
-                                file_not_exist, file_name, share_link = quark.store(url)
+                                file_not_exist = False
+                                file_name = ''
+                                share_link = ''
+                                if 'quark' in url:
+                                    file_not_exist, file_name, share_link = quark.store(url)
+
+                                elif 'baidu' in url:
+                                    file_not_exist, file_name, share_link = baidu.store(url)
+
                             except Exception as e:
                                 print(f'转存-失败【error】：{item["title"]}   {url}：{e}')
                                 import traceback
@@ -165,16 +188,16 @@ class My(Plugin):
                                 continue
                             if file_not_exist:
                                 print(f'转存-名称【New】：{file_name}   {share_link}')
-                                i += 1
                             else:
                                 print(f'转存-名称【已存在】：{file_name}   {share_link}')
-
                             item['url'] = share_link
+                            item['is_time'] = 1
                             unique_data.append(item)
+                            i += 1
 
                 end_time = time.time()
                 execution_time = end_time - start_time
-                logger.info(f"查询执行耗时: {execution_time:.6f} seconds")
+                logger.info(f"查询执行耗时: {execution_time:.2f} seconds")
                 logger.info(f"查询结果: {unique_data}")
                 return unique_data
 
@@ -182,7 +205,7 @@ class My(Plugin):
             def send_build(response_data):
                 if not response_data:
                     reply_text_final = f"{at_name}搜索内容：{search_content}"
-                    reply_text_final += "\n呜呜，还没找到呢~😔"
+                    reply_text_final += "\n还没找到呢~😔"
                     reply_text_final += "\n⚠关键词错误或存在错别字"
                     reply_text_final += "\n————————————"
                     reply_text_final += "\n⚠搜索指令：搜:XXX"

@@ -44,6 +44,10 @@
             "enabled": false,
             "priority": 10
         },
+        "voice_reply": {
+            "enabled": true,
+            "priority": 6
+        },
         "tool": {
             "enabled": true,
             "priority": 0

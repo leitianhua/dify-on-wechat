@@ -1,10 +1,9 @@
-import logging
 import random
 import re
 import time
 import requests
+from config import pconf
 
-conf = {}
 
 
 def get_id_from_url(url):
@@ -57,8 +56,7 @@ def ad_check(file_name: str) -> bool:
     #     '加入群', '入群', '资源来源网络，30分钟后删除，请及时保存'
     # ]
 
-    global conf
-    ad_keywords = conf.get("ad_keywords")
+    ad_keywords = quark_config.get("ad_keywords")
     # ad_keywords = []
 
     # 将文件名转换为小写进行检查
@@ -75,12 +73,13 @@ def ad_check(file_name: str) -> bool:
 import sqlite3
 import logging
 
-
+quark_config={}
 class SqlLiteOperator:
     def __init__(self):
         self.conn = sqlite3.connect('./quark.db')
         self.cursor = self.conn.cursor()
         self.create_table()
+
 
     def create_table(self):
 
@@ -108,9 +107,22 @@ class SqlLiteOperator:
             logging.error(f"保存文件记录失败: {e}")
             self.conn.rollback()
 
+    # 删除文件
+    def del_files(self, file_id):
+        sql = '''
+        delete from kan_files where file_id = ? 
+        '''
+        try:
+            self.cursor.execute(sql, (file_id,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+
     def find_share_link_by_name(self, file_name: str):
         """查询文件是否存在"""
-        sql = 'SELECT share_link FROM kan_files WHERE file_name = ?'
+        sql = '''
+        SELECT share_link FROM kan_files WHERE file_name = ?
+        '''
         self.cursor.execute(sql, (file_name,))
         share_link = self.cursor.fetchone()
         if share_link is None:
@@ -118,10 +130,23 @@ class SqlLiteOperator:
         else:
             return share_link[0]
 
-    def __del__(self):
-        """关闭数据库连接"""
-        self.cursor.close()
-        self.conn.close()
+    def find_expired_resources(self, expired_time: int):
+        """查询失效资源
+        Args:
+            expired_time: 失效时间（分钟）
+        """
+        sql = '''
+        SELECT a.* 
+        FROM kan_files a 
+        WHERE (strftime('%s', 'now') - strftime('%s', a.created_at))  > ? ;
+        '''
+        self.cursor.execute(sql, (expired_time * 60,))
+        return self.cursor.fetchall()
+    #
+    # def __del__(self):
+    #     """关闭数据库连接"""
+    #     self.cursor.close()
+    #     self.conn.close()
 
     def close_db(self):
         """关闭数据库连接"""
@@ -132,14 +157,11 @@ class SqlLiteOperator:
 class Quark:
     """夸克网盘操作类，用于自动化处理网盘文件"""
 
-    def __init__(self, config) -> None:
+    def __init__(self) -> None:
         """初始化夸克网盘操作类
-        Args:
-            conf: 配置
         """
-        global conf
-        conf = config
-
+        global quark_config
+        quark_config = pconf("my")
         # 设置API请求头
         self.headers = {
             'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
@@ -155,16 +177,33 @@ class Quark:
             'referer': 'https://pan.quark.cn/',
             'accept-encoding': 'gzip, deflate, br',
             'accept-language': 'zh-CN,zh;q=0.9',
-            'cookie': conf.get("cookie")
+            'cookie': quark_config["quark_cookie"]
         }
         # 初始化数据库操作对象
         self.operator = SqlLiteOperator()
         # 存储目录ID，默认为None表示根目录
-        res_save_dir = conf.get('save_dir')
+        res_save_dir = quark_config.get('quark_save_dir')
         if res_save_dir == '':
             self.parent_dir = None
         else:
             self.parent_dir = res_save_dir
+
+    # 删除过期资源
+    def del_expired_resources(self, expired_time):
+        expired_list = self.operator.find_expired_resources(expired_time)
+
+        # 遍历过期数据
+        for expired_file in expired_list:
+            fl = self.search_file(expired_file[1])
+            # print(f"查询： {expired_file[1]}    ")
+            # print(f"数量： {len(fl)}    ")
+            # print(f"结果:  {fl}")
+            # 网盘删除
+            for f in fl:
+                self.del_file(f.get("fid"))
+                print(f'删除过期资源：{expired_file[1]}')
+            # 数据库删除
+            self.operator.del_files(expired_file[0])
 
     def store(self, url: str):
         """保存分享链接中的文件到自己的网盘
@@ -397,13 +436,13 @@ class Quark:
             file_list: 文件列表
         """
         logging.debug("删除可能存在广告的文件")
-        for file in file_list:
-            file_name = file.get("file_name")
+        for pre_file in file_list:
+            file_name = pre_file.get("file_name")
 
             # 检查文件名是否包含广告关键词
             if ad_check(file_name):
-                task_id = self.del_file(file.get("fid"))
-                self.task(task_id)
+                task_id = self.del_file(pre_file.get("fid"))
+                self.del_file(task_id)
 
     def search_file(self, file_name):
         """搜索网盘中的文件
@@ -439,38 +478,10 @@ class Quark:
 
 
 if __name__ == '__main__':
-    # 使用示例
-    # config = {
-    #     "src_url": "ks.jizhi.me",
-    #     "cookie1": "_UP_A4A_11_=wb965167905b4372a78e89ad55a748af; tfstk=fqGmGkigDxyXGyQ9mbVXadVbdK9-liN_xcCTX5EwUur5HoFt755ZXVFYQngtqlmt5olYkoUZj0E76ohxHAbjZDfOMn9j71VT_HKp9B3Xl5NwvSYNrDrb54ra5fw2wqN__3nCbt5KlDcYmlOg_UVzSP1a_1oaU4r75PS47s8ozuaa_sra7z7z5y74brlETarxbmGyJIoWJbojjb403L3441zSZr20Yqrh_1WUo-qEuuxd4f3LUVwi1N1gLqkIfyoV0hqsZ4lqLD-RHok3S2HiuI5zMjgqLRlefOo3ic2Eg8bNTqg4D74rTFBQ2bqxbj2yJ62TaXeUgYpWDRF0-cljmNfZY43KG8GMxgrsHyNzSfTFIl2N4CXPLz051z8tZO6_3zauA7aKeaw4tJRerUXEd-z7uBLkrO6_3zauvUYlLHw4PrRd.; _UP_F7E_8D_=0z44HdIBxZZqPa25Ub0TVXltLXQDyq1RwsMdKhXvERQvOk1AmQkNxLlLOSi3D%2FTTUCGf%2B5hDnkxLHpvA%2Fhicy1HUTu2LBlCPom4qTWeMFqCgN55FQx3lIyu%2B1OsWIKjG1w4pOGWcZjvuo4m2jHof9eRj66wpeTPO4r7NBD%2F4wEE0IpjIBHWretgcndtvmRjOjVn%2BnAjcaowXy52%2F9kbLMbzk4nczcPLP1rSgCMVm5ws2Z%2BPyTAVLm9UiDHFvPYOejtppHI1D5BWo9iWpC3nRSU7a6icULwkUypG1CzPKycsVOMEdD6uzZJXMxBnUatpyAHLu79tlMNqP8TGNMQXXgvSqK5ufzR58ZeivnehV0qE%2FWt1yDEDt%2BfWrmT4mVs6zZWXvqpzmoV3MeygIUCEakjmqUpi%2BMoCaK%2BK%2BYrCYUbg6F8u7yQFbh%2F0Q7RCSfK2U6tAXQttwc%2FtDK7HYGyvolg%3D%3D; _UP_D_=pc; __pus=481757cbfeebbb1d88612537ebeac5c1AATbouZ3q4A42xryvioZHiMLj1oA0B8rQCQAp+Wo1Y4DuOIWCQG+mRmcbHRzmsEmJuLDxXfbcUwJRoMYnyS3neQC; __kp=27e614c0-7a7f-11ef-87f7-f9e5c62a9c04; __kps=AATYIjLlcIEeoRU+aMylrVCd; __ktd=R9BUN0vqQ38VUloW/uHx9g==; __uid=AATYIjLlcIEeoRU+aMylrVCd; __puus=7b97a93c7fce17bf9f127762d5dfcfd6AATZByE6Qo9Tzb02mHpZVvp5HZWKrXDF2sjXr6caszU/7W0aUYNc9/ZLMQ4lBangoP/a5mynJ4uVgbwnf56weT9J/I67c2pL7tK9CAck9p3OXHZIWUXFfSYorssPynK4mM4bbVRxHncyQ/yoEFgUw0vINErPixpqcnhe58YM9ceUXaQyax31PLbx28+xG20e1onZOutSM87uWz84PHoABO12",
-    #     "cookie": "b-user-id=d9fbd89a-7e69-ad5f-796c-f283169f7030; isg=BLKy4CoqAePk_z3fUL7Oas-FA_iUQ7bdscRo4nyL_mVQD1IJZNVQ7bts-6uzfy51; tfstk=f98oHci6V3S7FJqcim7SYZOce1mYF7_ChpUdpwBE0tWfpbOpTwzepBQRYYOpn9W2KkWEN653x19wvbGIEKcHeBadUTLd-MJOzMtRpTBh-B9iMA3tWQO5RZktBVnaHHBlR9ud8QbQVP_EBA3YDSSSewJRYRLQnIWft_yFUp740664Y9JFUiyVs1_F8wJFgI5Osk5U8gyqut1F89JF8jAT8OYelEkRXxjsNTCDo_jqDQW4LiTcZgXwaU4U855lqORPnAgotIS2OMYQOyjHah9C_LyrK9TDgU-wQxERUhfH6HArzr7JPQ-NYFkQYQQREZ8yjWzeiaXcvejbExXwPI81ui3ZsI8XeQTD9WuFMdB2NU7n7f_lzT7cGeHbz9x2YUI5R8khdEA2zHjPsorwM2aCgXL4AksPGsXTQdsG_HpeJkhmili54s1-Bjc0AksPGsXtijq_dg5fwAC..; _UP_A4A_11_=wb96c1edcce244058eef7b9a0b04541f; _UP_D_=pc; _UP_F7E_8D_=b0PSLv5dciNJR7POGgS3AJWwAsSGsVzdGUOU%2BWEa1%2FCQ9pt%2Flxcgspx%2F7jdZxm88%2BDZR%2F3OCavVVlSrlA%2FHE35guhUiWeFXSFrpiz7iQup7LB%2BL83Dn0lIDh36hnRcflW%2FQJYV4NNTtd2aHHLsro3PELcRKHSujuLbPeoOdhK0F%2B4CVxwd%2BA5kyclW53hcuTOm0qJXeruCsHvfOHRIiaNUy8%2FinnOmOa%2Bto1XMlORGQQCgydnJFD4oInCxl1g1C0s1YxLzJs52lWdoIk19nvWfytP81cJKxfv1GfwBTrR0bS%2FBGt91fGhZMwyZvOKbU%2F8ZkbgrGvmwxqzivluzXqQHrmHUwax9fVlczEGdRq2nJkSi56LgyDrXpsyYdGYA0F4Cj%2Fntr80vkUTca5E0LqLcBEt4UN6jDY; __pus=d4b4ba104bfbc7433c8e9235597ff76cAASDxWuXTR1OiVVovAdD9om4/GtkCTmTqugcP2jheBR9TGMkZPPKQsYQJhZaHxoAWu1+qkCX5bZtW5nFwq4KpwHi; __kp=b5377c00-c35a-11ef-996b-63e52b76dc2c; __kps=AAR4uAqdyWJqDmR/hvGc4/Ox; __ktd=6/QGUbqZLzTrYbWbzChb4g==; __uid=AAR4uAqdyWJqDmR/hvGc4/Ox; __puus=242c36535237a82908254c9bd4879722AASF8MU0hSGDuoLtbQ2dHfyu6bfgQ1awX3UeU377gqIXT/NI1XnUd7gkZIFZ4D3UsW86j089oqJjPmNfI453CfJRC2yyEBYqwGK76vlW4msLfGYvyql/cD1aRnLUXwFgUGiXlrWGmjuSZNyCPyNf5aJJKPNIsS0XWCLfLU4Ba+Vst9lgv4lDf7ST5+E8jbioI3HCDUCHMkdSTVYvW8SeUVnh",
-    #     "save_dir": "17bd2d4dfbeb4ed9a7c2bde5bba73a15",
-    #     "ad_keywords": [
-    #     ]
-    # }
-
-    # 文件路径
-    file_path = 'test.json'
-    # 读取JSON文件
-    with open(file_path, 'r', encoding='utf-8') as file:
-        import json
-        config = json.load(file)
-
-
-    quark = Quark(config['My'])
+    quark = Quark()
     # quark.store('https://pan.quark.cn/s/21d7d1f50a5c?entry=sjss#/list/share')
     # quark.store('https://pan.quark.cn/s/37708b88d52e')
     file_list = quark.get_all_file()
     print(file_list)
     found_fid = next((f['fid'] for f in file_list if f['file_name'] == '临时资源'), None)
-
-    if found_fid:
-        print(f'已找到：{found_fid}')
-
-        config['My']['save_dir_id'] = found_fid
-
-        # 将修改后的数据写回JSON文件
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(config, file, indent=4, ensure_ascii=False)
-    else:
-        print(f"未找到：{quark.mkdir('临时资源').json().get('fid')}")
+    quark.del_expired_resources(30)

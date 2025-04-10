@@ -20,6 +20,8 @@ from common.tmp_dir import TmpDir
 from common.utils import compress_imgfile, fsize
 from config import conf, save_config, pconf
 from lib.gewechat import GewechatClient
+from voice.audio_convert import split_audio, any_to_sil
+import time
 
 MAX_UTF8_LEN = 2048
 
@@ -109,6 +111,29 @@ class GeWeChatChannel(ChatChannel):
         app = web.application(urls, globals(), autoreload=False)
         web.httpserver.runsimple(app.wsgifunc(), ("0.0.0.0", port))
 
+    def send_voice2(self, receiver, content):
+        # 获取每段音频的时长
+        def get_segment_durations(file_paths):
+            from pydub import AudioSegment
+            durations = []
+            for path in file_paths:
+                audio = AudioSegment.from_file(path)
+                durations.append(len(audio))
+                return durations
+
+        # 分割音频文件
+        audio_length_ms, files = split_audio(content, 60 * 1000)
+        segment_durations = get_segment_durations(files)
+        for fcontent, s in zip(files, segment_durations):
+            print(f'{s}----语音时间---地址---{fcontent}')
+            silk_path = fcontent + '.silk'
+            duration = any_to_sil(fcontent, silk_path)
+            callback_url = conf().get("gewechat callback url")
+            silk_url = callback_url + "?file=" + silk_path
+            self.client.post_voice(self.app_id, receiver, silk_url, duration)
+            logger.info(f"[gewechat]发送语音内容 {receiver}: {silk_url}, 时间: {duration / 1000.0} 秒")
+            time.sleep(s / 1080)
+
     def send_voice(self, to_wxid, reply_text):
         vrc = pconf('voice_reply')
         url = f"{vrc['voice_models'][vrc['voice_model_now']]}&text={reply_text}"
@@ -167,7 +192,7 @@ class GeWeChatChannel(ChatChannel):
                 f.write(response.content)
 
             # 将 .wav 文件转换为 .silk 格式
-            temp_silk_path,voice_duration = convert_wav_to_silk(temp_wav_path)
+            temp_silk_path, voice_duration = convert_wav_to_silk(temp_wav_path)
             silk_path = f"{conf().get('gewechat_callback_url')}?file={temp_silk_path}"
             logger.info(f"返回 .silk gewechat_callback_url文件的路径: {silk_path}")
             # 发送语音
@@ -260,7 +285,8 @@ class GeWeChatChannel(ChatChannel):
         if reply.type in [ReplyType.TEXT, ReplyType.ERROR, ReplyType.INFO]:  # 文本
             if pconf("voice_reply").get("open_voice_reply"):
                 # self.client.post_voice(self.app_id, receiver, voice_url,2000)
-                self.send_voice(receiver, reply.content)
+                # self.send_voice(receiver, reply.content)
+                self.send_voice2(receiver, reply.content)
             else:
                 reply_text = reply.content
                 ats = ""

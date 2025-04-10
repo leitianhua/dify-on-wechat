@@ -49,7 +49,8 @@ kkkob_headers = {
     'X-Requested-With': 'XMLHttpRequest'
 }
 
-class QURAK:
+
+class SrcSearch:
     def get_id_from_url(self, url):
         url = url.replace("https://pan.quark.cn/s/", "")
         pattern = r"(\w+)(#/list/share.*/(\w+))?"
@@ -86,7 +87,7 @@ class QURAK:
         items_json = []
         msg = '外部资源1查询结果：\n'
         try:
-            response = requests.get(url, params=params, timeout=1)
+            response = requests.get(url, params=params, timeout=2)
             # 检查请求是否成功
             if response.status_code == 200:
                 # 解析返回的JSON数据
@@ -99,26 +100,37 @@ class QURAK:
                     # 打印结果
                     for item in first_three_items:
                         item_str = str(item)  # 将item转换为字符串
-                        if 'quark' in item_str and i <=5:
-                            # 判断夸克资源是否失效
-                            pwd_id, pdir_fid = self.get_id_from_url(item['url'])
-                            is_sharing, stoken = self.get_stoken(pwd_id)
-                            if is_sharing:
-                                # msg += str(i) + '.' + f"{item['title']}\n{item['url']}\n"
-                                # 创建一个字典，包含标题和URL
-                                item_dict = {
-                                    'title': item['title'],
-                                    'url': item['url']
-                                }
-                                # 将字典添加到列表中
-                                items_json.append(item_dict)
-                                i += 1
+                        # if 'quark' in item_str and i <= 5:
+                        #     # 判断夸克资源是否失效
+                        #     pwd_id, pdir_fid = self.get_id_from_url(item['url'])
+                        #     is_sharing, stoken = self.get_stoken(pwd_id)
+                        #     if is_sharing:
+                        #         # msg += str(i) + '.' + f"{item['title']}\n{item['url']}\n"
+                        #         # 创建一个字典，包含标题和URL
+                        #         item_dict = {
+                        #             'title': item['title'],
+                        #             'url': item['url']
+                        #         }
+                        #         # 将字典添加到列表中
+                        #         items_json.append(item_dict)
+                        #         i += 1
+                        if ('quark' in item_str or 'baidu' in item_str) and i <= 5:
+                            # 创建一个字典，包含标题和URL
+                            item_dict = {
+                                'title': item['title'],
+                                'url': item['url']
+                            }
+                            # 将字典添加到列表中
+                            items_json.append(item_dict)
+                            i += 1
                 else:
                     msg += '未查询到数据1'
             else:
                 msg += '查询请求失败1'
-        except Exception:
-            msg += f"查询请求失败1"
+        except Exception as e:
+            msg += f"查询请求失败1:{e}"
+
+        print(msg)
 
         return items_json
 
@@ -132,7 +144,7 @@ class QURAK:
         msg = '外部资源2查询结果：\n'
 
         try:
-            response = requests.get(url, params=params, timeout=1)
+            response = requests.get(url, params=params, timeout=2)
             # 检查请求是否成功
             if response.status_code == 200:
                 # 解析返回的JSON数据
@@ -144,31 +156,40 @@ class QURAK:
                     # 打印结果
                     for item in first_three_items:
                         item_str = str(item)  # 将item转换为字符串
-                        if 'quark' in item_str and i <=5:
+                        if ('quark' in item_str or 'baidu' in item_str) and i <= 5:
                             url = item['data_url'].split("链接：")[1]
                             title = item['title']
-                            # 判断夸克资源是否失效
-                            pwd_id, pdir_fid = self.get_id_from_url(url)
-                            is_sharing, stoken = self.get_stoken(pwd_id)
-                            if is_sharing:
-                                # msg += str(i) + '.' + f"{item['title']}\r\n{url}\n"
-                                # 创建一个字典，包含标题和URL
-                                item_dict = {
-                                    'title': title,
-                                    'url': url
-                                }
-                                # 将字典添加到列表中
-                                items_json.append(item_dict)
-                                i += 1
+                            # 创建一个字典，包含标题和URL
+                            item_dict = {
+                                'title': title,
+                                'url': url
+                            }
+                            # 将字典添加到列表中
+                            items_json.append(item_dict)
+                            i += 1
+                        # if 'quark' in item_str and i <= 5:
+                        #     url = item['data_url'].split("链接：")[1]
+                        #     title = item['title']
+                        #     # 判断夸克资源是否失效
+                        #     pwd_id, pdir_fid = self.get_id_from_url(url)
+                        #     is_sharing, stoken = self.get_stoken(pwd_id)
+                        #     if is_sharing:
+                        #         # msg += str(i) + '.' + f"{item['title']}\r\n{url}\n"
+                        #         # 创建一个字典，包含标题和URL
+                        #         item_dict = {
+                        #             'title': title,
+                        #             'url': url
+                        #         }
+                        #         # 将字典添加到列表中
+                        #         items_json.append(item_dict)
+                        #         i += 1
                 else:
                     msg += '未查询到数据2'
-                    print(msg)
             else:
                 msg += '查询请求失败2'
-                print(msg)
-        except Exception:
-            msg += f"查询请求失败2"
-            print(msg)
+        except Exception as e:
+            msg += f"查询请求失败2:{e}"
+        print(msg)
 
         return items_json
 
@@ -179,33 +200,33 @@ class QURAK:
         headers['origin'] = 'https://pan.funletu.com'
         headers['referer'] = 'https://pan.funletu.com/'
         params = {
-                    "style": "get",
-                    "datasrc": "search",
-                    "query": {
-                        "id": "",
-                        "datetime": "",
-                        "commonid": 1,
-                        "parmid": "",
-                        "fileid": "",
-                        "reportid": "",
-                        "validid": "",
-                        "searchtext": qry_key
-                    },
-                    "page": {
-                        "pageSize": 10,
-                        "pageIndex": 1
-                    },
-                    "order": {
-                        "prop": "id",
-                        "order": "desc"
-                    },
-                    "message": "请求资源列表数据"
-                }
+            "style": "get",
+            "datasrc": "search",
+            "query": {
+                "id": "",
+                "datetime": "",
+                "commonid": 1,
+                "parmid": "",
+                "fileid": "",
+                "reportid": "",
+                "validid": "",
+                "searchtext": qry_key
+            },
+            "page": {
+                "pageSize": 10,
+                "pageIndex": 1
+            },
+            "order": {
+                "prop": "id",
+                "order": "desc"
+            },
+            "message": "请求资源列表数据"
+        }
 
         msg = '外部资源3查询结果：\n'
         result_json = []
         try:
-            response = requests.post(url, json=params, headers=headers, timeout=1).json()
+            response = requests.post(url, json=params, headers=headers, timeout=2).json()
             print(response)
 
             # 检查请求是否成功
@@ -216,33 +237,42 @@ class QURAK:
                     # 打印结果
                     for item in first_three_items:
                         item_str = str(item)  # 将item转换为字符串
-                        if 'quark' in item_str and i <= 5:
+                        if ('quark' in item_str or 'baidu' in item_str) and i <= 5:
                             url = item['url'].replace("?entry=funletu", "", 1)
                             title = item['title']
-                            # 判断夸克资源是否失效
-                            pwd_id, pdir_fid = self.get_id_from_url(url)
-                            is_sharing, stoken = self.get_stoken(pwd_id)
-                            if is_sharing:
-                                # msg += str(i) + '.' + f"{item['title']}\r\n{url}\n"
-                                item_dict = {
-                                    'url': url,
-                                    'title': title
-                                }
-                                # 将字典添加到列表中
-                                result_json.append(item_dict)
-                                i += 1
+                            item_dict = {
+                                'url': url,
+                                'title': title
+                            }
+                            # 将字典添加到列表中
+                            result_json.append(item_dict)
+                            i += 1
+                        # if 'quark' in item_str and i <= 5:
+                        #     url = item['url'].replace("?entry=funletu", "", 1)
+                        #     title = item['title']
+                        #     # 判断夸克资源是否失效
+                        #     pwd_id, pdir_fid = self.get_id_from_url(url)
+                        #     is_sharing, stoken = self.get_stoken(pwd_id)
+                        #     if is_sharing:
+                        #         # msg += str(i) + '.' + f"{item['title']}\r\n{url}\n"
+                        #         item_dict = {
+                        #             'url': url,
+                        #             'title': title
+                        #         }
+                        #         # 将字典添加到列表中
+                        #         result_json.append(item_dict)
+                        #         i += 1
                 else:
                     msg += '未查询到数据3'
                     print(msg)
             else:
                 msg += '查询请求失败3'
-                print(msg)
-        except Exception:
-            msg += f"查询请求失败3"
-            print(msg)
+        except Exception as e:
+            msg += f"查询请求失败3:{e}"
+        print(msg)
 
         return result_json
-        
+
     def get_qry_external_4(self, qry_key: str):
         url = f"https://waliso.com/v1/search/disk"
         headers = waliso_headers.copy()
@@ -270,8 +300,8 @@ class QURAK:
         msg = '外部资源4查询结果：\n'
         result_json = []
         try:
-            response = requests.post(url, json=params, headers=headers, timeout=1).json()
-            print(response)
+            response = requests.post(url, json=params, headers=headers, timeout=2).json()
+            # print(response)
 
             # # 检查请求是否成功
             if response['code'] == 200:  # 假设0表示成功
@@ -281,30 +311,41 @@ class QURAK:
                     # 打印结果
                     for item in first_three_items:
                         item_str = str(item)  # 将item转换为字符串
-                        if 'quark' in item_str and i <= 5:
+                        if ('quark' in item_str or 'baidu' in item_str) and i <= 5:
                             title = item['disk_name'].replace("<em>", "", 1).replace("</em>", "", 1)
                             url = item['link']
-                            # 判断夸克资源是否失效
-                            pwd_id, pdir_fid = self.get_id_from_url(url)
-                            is_sharing, stoken = self.get_stoken(pwd_id)
-                            if is_sharing:
-                                # msg += str(i) + '.' + f"{title}\r\n{url}\n"
-
-                                # 创建一个字典，包含标题和URL
-                                item_dict = {
-                                    'title': title,
-                                    'url': url
-                                }
-                                # 将字典添加到列表中
-                                result_json.append(item_dict)
-                                i += 1
+                            # 创建一个字典，包含标题和URL
+                            item_dict = {
+                                'title': title,
+                                'url': url
+                            }
+                            # 将字典添加到列表中
+                            result_json.append(item_dict)
+                            i += 1
+                        # if 'quark' in item_str and i <= 5:
+                        #     title = item['disk_name'].replace("<em>", "", 1).replace("</em>", "", 1)
+                        #     url = item['link']
+                        #     # 判断夸克资源是否失效
+                        #     pwd_id, pdir_fid = self.get_id_from_url(url)
+                        #     is_sharing, stoken = self.get_stoken(pwd_id)
+                        #     if is_sharing:
+                        #         # msg += str(i) + '.' + f"{title}\r\n{url}\n"
+                        #
+                        #         # 创建一个字典，包含标题和URL
+                        #         item_dict = {
+                        #             'title': title,
+                        #             'url': url
+                        #         }
+                        #         # 将字典添加到列表中
+                        #         result_json.append(item_dict)
+                        #         i += 1
                 else:
                     msg += '未查询到数据'
             else:
-                msg += '查询请求失败'
+                msg += '查询请求失败4'
         except Exception as e:
-            msg += f"查询请求失败" + str(e)
-
+            msg += f"查询请求失败4:{e}"
+        print(msg)
         return result_json
 
     def get_qry_external_5(self, qry_key: str):
@@ -318,7 +359,7 @@ class QURAK:
         msg = '外部资源5查询结果：\n'
 
         try:
-            response = requests.post(url, json=params, headers=headers, timeout=1).json()
+            response = requests.post(url, json=params, headers=headers, timeout=2).json()
             print(response)
 
             # 检查请求是否成功
@@ -328,29 +369,38 @@ class QURAK:
                     first_three_items = response['data']['records']
                     # 打印结果
                     for item in first_three_items:
-                        item_str = str(item)  # 将item转换为字符串
                         if i <= 5:
                             title = item['title']
                             url = 'https://pan.quark.cn/s/' + item['shareUrl']
-                            # 判断夸克资源是否失效
-                            pwd_id, pdir_fid = self.get_id_from_url(url)
-                            is_sharing, stoken = self.get_stoken(pwd_id)
-                            if is_sharing:
-                                # msg += str(i) + '.' + f"{title}\r\n{url}\n"
-                                item_dict = {
-                                    'url': url,
-                                    'title': title.encode('utf-8').decode('utf-8')
-                                }
-                                # 将字典添加到列表中
-                                result_json.append(item_dict)
-                                i += 1
+                            item_dict = {
+                                'url': url,
+                                'title': title.encode('utf-8').decode('utf-8')
+                            }
+                            # 将字典添加到列表中
+                            result_json.append(item_dict)
+                            i += 1
+                        # if i <= 5:
+                        #     title = item['title']
+                        #     url = 'https://pan.quark.cn/s/' + item['shareUrl']
+                        #     # 判断夸克资源是否失效
+                        #     pwd_id, pdir_fid = self.get_id_from_url(url)
+                        #     is_sharing, stoken = self.get_stoken(pwd_id)
+                        #     if is_sharing:
+                        #         # msg += str(i) + '.' + f"{title}\r\n{url}\n"
+                        #         item_dict = {
+                        #             'url': url,
+                        #             'title': title.encode('utf-8').decode('utf-8')
+                        #         }
+                        #         # 将字典添加到列表中
+                        #         result_json.append(item_dict)
+                        #         i += 1
                 else:
                     msg += '未查询到数据'
             else:
-                msg += '查询请求失败'
-        except Exception:
-            msg += f"查询请求失败"
-
+                msg += '查询请求失败5'
+        except Exception as e:
+            msg += f"查询请求失败5:{e}"
+        print(msg)
         return result_json
 
     def get_kkkob_token(self):
@@ -366,11 +416,11 @@ class QURAK:
 
     def get_kkkob_result(self, qry: str, url: str, token: str):
         result_json = []
-        msg = '查询结果kk：\n'
+        msg = '查询结果6：\n'
         try:
             headers = kkkob_headers.copy()
             params = {"name": qry, "token": token}
-            response = requests.post(url, data=params, headers=headers, timeout=1)
+            response = requests.post(url, data=params, headers=headers, timeout=2)
             # print(response)
             # 检查请求是否成功
             if response.status_code == 200:
@@ -390,25 +440,42 @@ class QURAK:
                             # 使用re.search查找匹配的链接
                             match = re.search(pattern, item['answer'])
                             url = match.group(0)
-                            # url = item['answer'].replace(title + "链接：", "", 1)
-                            # 判断夸克资源是否失效
-                            pwd_id, pdir_fid = self.get_id_from_url(url)
-                            is_sharing, stoken = self.get_stoken(pwd_id)
-                            if is_sharing:
-                                # msg += str(i) + '.' + f"{item['title']}\r\n{url}\n"
-                                item_dict = {
-                                    'url': url,
-                                    'title': title
-                                }
-                                # 将字典添加到列表中
-                                result_json.append(item_dict)
-                                i += 1
+                            item_dict = {
+                                'url': url,
+                                'title': title
+                            }
+                            # 将字典添加到列表中
+                            result_json.append(item_dict)
+                            i += 1
+                        # if 'quark' in item_str and i <= 3:
+                        #     title = item['question']
+                        #
+                        #     # 正则表达式，用于匹配以https://开头，包含pan.quark.cn的链接
+                        #     pattern = r'https?://pan\.quark\.cn/[^ ]+'
+                        #
+                        #     # 使用re.search查找匹配的链接
+                        #     match = re.search(pattern, item['answer'])
+                        #     url = match.group(0)
+                        #     # url = item['answer'].replace(title + "链接：", "", 1)
+                        #     # 判断夸克资源是否失效
+                        #     pwd_id, pdir_fid = self.get_id_from_url(url)
+                        #     is_sharing, stoken = self.get_stoken(pwd_id)
+                        #     if is_sharing:
+                        #         # msg += str(i) + '.' + f"{item['title']}\r\n{url}\n"
+                        #         item_dict = {
+                        #             'url': url,
+                        #             'title': title
+                        #         }
+                        #         # 将字典添加到列表中
+                        #         result_json.append(item_dict)
+                        #         i += 1
                 else:
                     msg += '未查询到数据kk'
             else:
-                msg += '查询请求失败kk'
+                msg += '查询请求失败6'
         except Exception as e:
-            print(e)
+            msg += f"查询请求失败6:{e}"
+        print(msg)
         return result_json
 
     def qry_kkkob(self, qry: str):

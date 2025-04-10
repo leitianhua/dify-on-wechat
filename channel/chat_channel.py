@@ -21,6 +21,15 @@ handler_pool = ThreadPoolExecutor(max_workers=8)  # 处理消息的线程池
 
 
 # 抽象类, 它包含了与消息通道无关的通用处理逻辑
+def check_prefix(content, prefix_list):
+    if not prefix_list:
+        return None
+    for prefix in prefix_list:
+        if content.startswith(prefix):
+            return prefix
+    return None
+
+
 class ChatChannel(Channel):
     name = None  # 登录的用户名
     user_id = None  # 登录的用户id
@@ -403,15 +412,6 @@ class ChatChannel(Channel):
                 if cnt > 0:
                     logger.info("Cancel {} messages in session {}".format(cnt, session_id))
                 self.sessions[session_id][0] = Dequeue()
-
-
-def check_prefix(content, prefix_list):
-    if not prefix_list:
-        return None
-    for prefix in prefix_list:
-        if content.startswith(prefix):
-            return prefix
-    return None
 
 
 def check_contain(content, keyword_list):
