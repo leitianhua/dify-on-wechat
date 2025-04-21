@@ -99,6 +99,14 @@ def qrCallback(uuid, status, qrcode):
 
         url = f"https://login.weixin.qq.com/l/{uuid}"
 
+        img = qrcode.make(data=url)
+
+        if not os.path.exists('tmp'):
+            os.makedirs('tmp')
+
+        with open('tmp/login.png', 'wb') as f:
+            img.save(f)
+
         qr_api1 = "https://api.isoyu.com/qr/?m=1&e=L&p=20&url={}".format(url)
         qr_api2 = "https://api.qrserver.com/v1/create-qr-code/?size=400×400&data={}".format(url)
         qr_api3 = "https://api.pwmqr.com/qrcode/create/?url={}".format(url)
@@ -113,7 +121,7 @@ def qrCallback(uuid, status, qrcode):
             try:
                 response = requests.get(item)
                 response.raise_for_status()
-                with open("wx_qrcode.png", "wb") as f:
+                with open("tmp/login.png", "wb") as f:
                     f.write(response.content)
                 break
             except Exception as e:
@@ -138,23 +146,33 @@ class WechatChannel(ChatChannel):
 
     def startup(self):
         try:
-            itchat.instance.receivingRetryCount = 600  # 修改断线超时时间
-            # login by scan QRCode
-            hotReload = conf().get("hot_reload", False)
-            status_path = os.path.join(get_appdata_dir(), "itchat.pkl")
-            itchat.auto_login(
-                enableCmdQR=2,
-                hotReload=hotReload,
-                statusStorageDir=status_path,
-                qrCallback=qrCallback,
-                exitCallback=self.exitCallback,
-                loginCallback=self.loginCallback
-            )
-            self.user_id = itchat.instance.storageClass.userName
-            self.name = itchat.instance.storageClass.nickName
-            logger.info("Wechat login success, user_id: {}, nickname: {}".format(self.user_id, self.name))
-            # start message listener
-            itchat.run()
+            time.sleep(3)
+            logger.error("""[WechatChannel] 当前channel暂不可用，目前支持的channel有:
+                1. terminal: 终端
+                2. wechatmp: 个人公众号
+                3. wechatmp_service: 企业公众号
+                4. wechatcom_app: 企微自建应用
+                5. dingtalk: 钉钉
+                6. feishu: 飞书
+                7. web: 网页
+            可修改 config.json 配置文件的 channel_type 字段进行切换""")
+            # itchat.instance.receivingRetryCount = 600  # 修改断线超时时间
+            # # login by scan QRCode
+            # hotReload = conf().get("hot_reload", False)
+            # status_path = os.path.join(get_appdata_dir(), "itchat.pkl")
+            # itchat.auto_login(
+            #     enableCmdQR=2,
+            #     hotReload=hotReload,
+            #     statusStorageDir=status_path,
+            #     qrCallback=qrCallback,
+            #     exitCallback=self.exitCallback,
+            #     loginCallback=self.loginCallback
+            # )
+            # self.user_id = itchat.instance.storageClass.userName
+            # self.name = itchat.instance.storageClass.nickName
+            # logger.info("Wechat login success, user_id: {}, nickname: {}".format(self.user_id, self.name))
+            # # start message listener
+            # itchat.run()
         except Exception as e:
             logger.exception(e)
 
