@@ -1,17 +1,10 @@
 import os
 import time
 import json
-import uuid
-import cv2
-from PIL import Image
-import requests
 import web
+import requests  # 确保此行存在
+import io
 from urllib.parse import urlparse
-import wave
-import struct
-import os
-import pilk  # 使用 pilk 库进行 SILK 编码
-from bridge.context import Context
 
 from bridge.context import Context, ContextType
 from bridge.reply import Reply, ReplyType
@@ -20,14 +13,17 @@ from channel.gewechat.gewechat_message import GeWeChatMessage
 from common.log import logger
 from common.singleton import singleton
 from common.tmp_dir import TmpDir
-from config import conf, save_config
-from common.utils import compress_imgfile, fsize
-from config import conf, save_config, pconf
 from lib.gewechat import GewechatClient
 from voice.audio_convert import mp3_to_silk
 import uuid
+
+import cv2
+from PIL import Image
+import wave
+import struct
+import pilk  # 使用 pilk 库进行 SILK 编码
+from config import conf, save_config, pconf
 from voice.audio_convert import split_audio, any_to_sil
-import time
 
 MAX_UTF8_LEN = 2048
 
@@ -360,6 +356,9 @@ class GeWeChatChannel(ChatChannel):
                 new_img_file_path = TmpDir().path() + str(newMsgId) + extension
                 os.rename(img_file_path, new_img_file_path)
                 logger.info("[gewechat] sendImage rename to {}".format(new_img_file_path))
+        elif reply.type == ReplyType.VIDEO_URL:  # 视频
+            logger.info(f"[gewechat] 发送视频{reply.content}，接收者={receiver}")
+            self.send_video(receiver, reply.content)
 
 class Query:
     def GET(self):
@@ -386,17 +385,16 @@ class Query:
 
     def POST(self):
         channel = GeWeChatChannel()
-        data = json.loads(web.data())
-        logger.debug("[gewechat] 接收到数据: {}".format(data))
-        if '回调地址链接成功' in str(data):
-            logger.debug(f"[gewechat] POST 回调地址链接成功 :{str(data)}")
-            return
-        elif "'TypeName': 'FinderMsg'" in str(data):
-            logger.debug(f"[gewechat] POST FinderMsg :{str(data)}")
-            return
+        web_data = web.data()
+        logger.debug("[gewechat] receive data: {}".format(web_data))
+        data = json.loads(web_data)
+
+        # gewechat服务发送的回调测试消息
+        if isinstance(data, dict) and 'testMsg' in data and 'token' in data:
+            logger.debug(f"[gewechat] 收到gewechat服务发送的回调测试消息")
+            return "success"
 
         gewechat_msg = GeWeChatMessage(data, channel.client)
-
 
         # 微信客户端的状态同步消息
         if gewechat_msg.ctype == ContextType.STATUS_SYNC:
@@ -419,7 +417,7 @@ class Query:
             return "success"
 
         # 忽略过期的消息
-        if int(gewechat_msg.create_time) < int(time.time()) - 60 * 5: # 跳过5分钟前的历史消息
+        if int(gewechat_msg.create_time) < int(time.time()) - 60 * 5:  # 跳过5分钟前的历史消息
             logger.debug(f"[gewechat] ignore expired message from {gewechat_msg.actual_user_id}: {gewechat_msg.content}")
             return "success"
 

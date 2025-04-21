@@ -1850,7 +1850,7 @@ class sakuraTools(Plugin):
             reply = Reply()
             # 获取早报
             newspaper_image_io = self.newspaper_request(self.NEWSPAPER_URL)
-            reply.type = ReplyType.IMAGE if newspaper_image_io else ReplyType.TEXT
+            reply.type = ReplyType.IMAGE_URL if newspaper_image_io else ReplyType.TEXT
             reply.content = newspaper_image_io if newspaper_image_io else "获取早报失败，待会再来吧~🐾"
             e_context['reply'] = reply
             # 事件结束，并跳过处理context的默认逻辑

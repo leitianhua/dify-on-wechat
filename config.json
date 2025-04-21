@@ -1,4 +1,5 @@
 {
+    "debug": true,
     "accept_friend_commands": [
         "加好友",
         "ALL_FRIEND",
