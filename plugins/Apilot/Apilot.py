@@ -458,7 +458,7 @@ class Apilot(Plugin):
 
 
                 # Clothing Index,处理部分县区穿衣指数返回null
-                chuangyi_data = data.get('index', {}).get('chuangyi', {})
+                chuangyi_data = data.get('index', {})[0].get('chuangyi', {})
                 if chuangyi_data:
                     chuangyi_level = chuangyi_data.get('level', '未知')
                     chuangyi_content = chuangyi_data.get('content', '未知')
@@ -500,6 +500,7 @@ class Apilot(Plugin):
                 return self.handle_error(weather_data, "获取失败，请查看服务器log")
 
         except Exception as e:
+            print(e)
             return self.handle_error(e, "获取天气信息失败")
 
     def get_mx_bagua(self):
