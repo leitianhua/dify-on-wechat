@@ -44,8 +44,8 @@ else:
 instanceList = [instance]
 
 # I really want to use sys.modules[__name__] = originInstance
-# but it makes auto-fill a real mess, so forgive me for my following **
-# actually it toke me less than 30 seconds, god bless Uganda
+# but it makes auto-fill a real mess, so forgive my for my following **
+# actually it toke my less than 30 seconds, god bless Uganda
 
 # components.login
 login                       = instance.login

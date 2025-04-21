@@ -24,14 +24,6 @@
             "enabled": false,
             "priority": 99
         },
-        "METASO": {
-            "enabled": true,
-            "priority": 99
-        },
-        "meme": {
-            "enabled": true,
-            "priority": 98
-        },
         "sakuraTools": {
             "enabled": true,
             "priority": 88
@@ -48,16 +40,8 @@
             "enabled": true,
             "priority": 6
         },
-        "tool": {
-            "enabled": true,
-            "priority": 0
-        },
         "Role": {
             "enabled": false,
-            "priority": 0
-        },
-        "CustomDifyApp": {
-            "enabled": true,
             "priority": 0
         },
         "TaskScheduler": {

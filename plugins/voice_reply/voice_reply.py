@@ -1,21 +1,11 @@
 # encoding:utf-8
-import threading
 import requests
 from bridge.context import ContextType
 from bridge.reply import Reply, ReplyType
-from channel import channel_factory
-from channel.gewechat.gewechat_channel import GeWeChatChannel
-from channel.wechat.wechat_channel import WechatChannel
 import plugins
 from plugins import *
 from common.log import logger
-from typing import List, Any
-import time
-from concurrent.futures import ThreadPoolExecutor
 from common.tmp_dir import TmpDir
-from plugins.my.src_search import SrcSearch
-from plugins.my.quark_utils import Quark
-from pydub import AudioSegment
 import uuid
 import wave
 import struct

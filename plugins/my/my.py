@@ -15,14 +15,15 @@ from concurrent.futures import ThreadPoolExecutor
 
 from plugins.my.src_search import SrcSearch
 from plugins.my.quark_utils import Quark
-from baidu import Baidu
+from plugins.my.baidu import Baidu
 
 
 @plugins.register(
     name="My",
+    namecn="搜索资源",
     desire_priority=100,
-    hidden=True,
-    desc="自定义插件功能",
+    # hidden=True,
+    desc="搜索资源",
     version="1.0",
     author="lei",
 )
@@ -250,7 +251,12 @@ class My(Plugin):
             return
 
     def get_help_text(self, **kwargs):
-        return "自定义功能"
+        return """
+        【全网搜资源】 
+        使用示例： 
+        搜西游记
+        搜索喜羊羊
+        """
 
     # 加载当前文件下的配置文件
     def _load_self_config(self):
