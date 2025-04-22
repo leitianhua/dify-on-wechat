@@ -102,7 +102,7 @@ class GeWeChatChannel(ChatChannel):
             tmp_dir = TmpDir().path()
             current_time = time.time()
             # 音频文件最大保留3小时
-            max_age = 3 * 60 * 60
+            max_age = self.temp_file_max_age
 
             # 清理.mp3和.silk文件
             for ext in ['.mp3', '.silk']:
@@ -120,6 +120,57 @@ class GeWeChatChannel(ChatChannel):
 
         except Exception as e:
             logger.error(f"[gewechat] 音频文件清理任务异常: {e}")
+
+    def _cleanup_video_files(self):
+        """清理过期的视频文件"""
+        try:
+            # 获取临时目录
+            tmp_dir = TmpDir().path()
+            current_time = time.time()
+            # 视频文件最大保留3小时
+            max_age = self.temp_file_max_age
+
+            # 清理.mp4文件
+            pattern = os.path.join(tmp_dir, '*.mp4')
+            for fpath in glob.glob(pattern):
+                try:
+                    # 获取文件修改时间
+                    mtime = os.path.getmtime(fpath)
+                    # 如果文件超过最大保留时间，则删除
+                    if current_time - mtime > max_age:
+                        os.remove(fpath)
+                        logger.debug(f"[gewechat] 清理过期视频文件: {fpath}")
+                except Exception as e:
+                    logger.warning(f"[gewechat] 清理视频文件失败 {fpath}: {e}")
+
+        except Exception as e:
+            logger.error(f"[gewechat] 视频文件清理任务异常: {e}")
+
+    def _cleanup_image_files(self):
+        """清理过期的图片文件"""
+        try:
+            # 获取临时目录
+            tmp_dir = TmpDir().path()
+            current_time = time.time()
+            # 图片文件最大保留3小时
+            max_age = self.temp_file_max_age
+
+            # 清理.jpg、.png和.gif文件
+            for ext in ['.jpg', '.png', '.gif']:
+                pattern = os.path.join(tmp_dir, f'*{ext}')
+                for fpath in glob.glob(pattern):
+                    try:
+                        # 获取文件修改时间
+                        mtime = os.path.getmtime(fpath)
+                        # 如果文件超过最大保留时间，则删除
+                        if current_time - mtime > max_age:
+                            os.remove(fpath)
+                            logger.debug(f"[gewechat] 清理过期图片文件: {fpath}")
+                    except Exception as e:
+                        logger.warning(f"[gewechat] 清理图片文件失败 {fpath}: {e}")
+
+        except Exception as e:
+            logger.error(f"[gewechat] 图片文件清理任务异常: {e}")
 
     def startup(self):
         # 如果app_id为空或登录后获取到新的app_id，保存配置
