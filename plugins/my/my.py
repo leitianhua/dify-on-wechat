@@ -53,8 +53,6 @@ class My(Plugin):
             self.clear_expired_resources_thread = threading.Thread(target=self.clear_expired_resources)
             self.clear_expired_resources_thread.daemon = True  # 设置为守护线程，防止主线程退出时子线程还在运行
             self.clear_expired_resources_thread.start()
-
-            logger.info("[My] 初始化成功")
         except Exception as e:
             logger.warn("[My] 初始化失败")
             raise e

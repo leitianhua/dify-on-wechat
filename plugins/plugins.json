@@ -4,11 +4,23 @@
             "enabled": true,
             "priority": 999
         },
-        "Keyword": {
-            "enabled": false,
-            "priority": 900
+        "media_parser": {
+            "enabled": true,
+            "priority": 100
+        },
+        "Weather": {
+            "enabled": true,
+            "priority": 100
+        },
+        "SearchMusic": {
+            "enabled": true,
+            "priority": 100
         },
         "My": {
+            "enabled": true,
+            "priority": 100
+        },
+        "KFC": {
             "enabled": true,
             "priority": 100
         },
@@ -25,7 +37,7 @@
             "priority": 99
         },
         "sakuraTools": {
-            "enabled": true,
+            "enabled": false,
             "priority": 88
         },
         "Apilot": {
@@ -37,7 +49,7 @@
             "priority": 10
         },
         "voice_reply": {
-            "enabled": true,
+            "enabled": false,
             "priority": 6
         },
         "Role": {

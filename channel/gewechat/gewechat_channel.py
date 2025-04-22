@@ -14,7 +14,6 @@ from common.log import logger
 from common.singleton import singleton
 from common.tmp_dir import TmpDir
 from lib.gewechat import GewechatClient
-from voice.audio_convert import mp3_to_silk
 import uuid
 
 import cv2
@@ -24,6 +23,9 @@ import struct
 import pilk  # 使用 pilk 库进行 SILK 编码
 from config import conf, save_config, pconf
 from voice.audio_convert import split_audio, any_to_sil
+import threading
+from voice.audio_convert import mp3_to_silk, split_audio
+import glob
 
 MAX_UTF8_LEN = 2048
 
@@ -35,55 +37,108 @@ class GeWeChatChannel(ChatChannel):
     def __init__(self):
         super().__init__()
 
+        # 设置临时文件的最大保留时间（3小时）
+        self.temp_file_max_age = 3 * 60 * 60  # 秒
+        # 启动定期清理任务
+        self._start_cleanup_task()
+
         self.base_url = conf().get("gewechat_base_url")
         if not self.base_url:
-            logger.error("[gewechat] base_url 未设置")
+            logger.error("[gewechat] base_url is not set")
             return
         self.token = conf().get("gewechat_token")
         self.client = GewechatClient(self.base_url, self.token)
 
         # 如果token为空，尝试获取token
         if not self.token:
-            logger.warning("[gewechat] token 未设置，尝试获取 token")
+            logger.warning("[gewechat] token is not set，trying to get token")
             token_resp = self.client.get_token()
             # {'ret': 200, 'msg': '执行成功', 'data': 'tokenxxx'}
             if token_resp.get("ret") != 200:
-                logger.error(f"[gewechat] 获取 token 失败: {token_resp}")
+                logger.error(f"[gewechat] get token failed: {token_resp}")
                 return
             self.token = token_resp.get("data")
             conf().set("gewechat_token", self.token)
             save_config()
-            logger.info(f"[gewechat] 新的 token 已保存: {self.token}")
+            logger.info(f"[gewechat] new token saved: {self.token}")
             self.client = GewechatClient(self.base_url, self.token)
 
         self.app_id = conf().get("gewechat_app_id")
         if not self.app_id:
-            logger.warning("[gewechat] app_id 未设置，尝试在登录时获取新的 app_id")
+            logger.warning("[gewechat] app_id is not set，trying to get new app_id when login")
 
         self.download_url = conf().get("gewechat_download_url")
         if not self.download_url:
-            logger.warning("[gewechat] download_url 未设置，无法下载图片")
+            logger.warning("[gewechat] download_url is not set, unable to download image")
 
-        logger.info(f"[gewechat] 初始化: base_url: {self.base_url}, token: {self.token}, app_id: {self.app_id}, download_url: {self.download_url}")
+        logger.info(f"[gewechat] init: base_url: {self.base_url}, token: {self.token}, app_id: {self.app_id}, download_url: {self.download_url}")
+
+    def _start_cleanup_task(self):
+        """启动定期清理任务"""
+
+        def _do_cleanup():
+            while True:
+                try:
+                    # 清理音频文件
+                    self._cleanup_audio_files()
+                    # 清理视频文件
+                    self._cleanup_video_files()
+                    # 清理图片文件
+                    self._cleanup_image_files()
+                    # 每30分钟执行一次清理
+                    time.sleep(30 * 60)
+                except Exception as e:
+                    logger.error(f"[gewechat] 清理任务异常: {e}")
+                    time.sleep(60)  # 发生错误时等待1分钟后重试
+
+        cleanup_thread = threading.Thread(target=_do_cleanup, daemon=True)
+        cleanup_thread.start()
+        logger.info("[gewechat] 清理任务已启动")
+
+    def _cleanup_audio_files(self):
+        """清理过期的音频文件"""
+        try:
+            # 获取临时目录
+            tmp_dir = TmpDir().path()
+            current_time = time.time()
+            # 音频文件最大保留3小时
+            max_age = 3 * 60 * 60
+
+            # 清理.mp3和.silk文件
+            for ext in ['.mp3', '.silk']:
+                pattern = os.path.join(tmp_dir, f'*{ext}')
+                for fpath in glob.glob(pattern):
+                    try:
+                        # 获取文件修改时间
+                        mtime = os.path.getmtime(fpath)
+                        # 如果文件超过最大保留时间，则删除
+                        if current_time - mtime > max_age:
+                            os.remove(fpath)
+                            logger.debug(f"[gewechat] 清理过期音频文件: {fpath}")
+                    except Exception as e:
+                        logger.warning(f"[gewechat] 清理音频文件失败 {fpath}: {e}")
+
+        except Exception as e:
+            logger.error(f"[gewechat] 音频文件清理任务异常: {e}")
 
     def startup(self):
         # 如果app_id为空或登录后获取到新的app_id，保存配置
         app_id, error_msg = self.client.login(self.app_id)
         if error_msg:
-            logger.error(f"[gewechat] 登录失败: {error_msg}")
+            logger.error(f"[gewechat] login failed: {error_msg}")
             return
 
         # 如果原来的self.app_id为空或登录后获取到新的app_id，保存配置
         if not self.app_id or self.app_id != app_id:
             conf().set("gewechat_app_id", app_id)
             save_config()
-            logger.info(f"[gewechat] 新的 app_id 已保存: {app_id}")
+            logger.info(f"[gewechat] new app_id saved: {app_id}")
             self.app_id = app_id
 
         # 获取回调地址，示例地址：http://172.17.0.1:9919/v2/api/callback/collect  
         callback_url = conf().get("gewechat_callback_url")
         if not callback_url:
-            logger.error("[gewechat] callback_url 未设置，无法启动回调服务器")
+            logger.error("[gewechat] callback_url is not set, unable to start callback server")
             return
 
         # 创建新线程设置回调地址
@@ -91,15 +146,15 @@ class GeWeChatChannel(ChatChannel):
         def set_callback():
             # 等待服务器启动（给予适当的启动时间）
             import time
-            logger.info("[gewechat] 等待服务器启动3秒，然后设置回调")
+            logger.info("[gewechat] sleep 3 seconds waiting for server to start, then set callback")
             time.sleep(3)
 
             # 设置回调地址，{ "ret": 200, "msg": "操作成功" }
             callback_resp = self.client.set_callback(self.token, callback_url)
             if callback_resp.get("ret") != 200:
-                logger.error(f"[gewechat] 设置回调地址失败: {callback_resp}")
+                logger.error(f"[gewechat] set callback failed: {callback_resp}")
                 return
-            logger.info("[gewechat] 回调地址设置成功")
+            logger.info("[gewechat] callback set successfully")
 
         callback_thread = threading.Thread(target=set_callback, daemon=True)
         callback_thread.start()
@@ -109,105 +164,105 @@ class GeWeChatChannel(ChatChannel):
         path = parsed_url.path
         # 如果没有指定端口，使用默认端口80
         port = parsed_url.port or 80
-        logger.info(f"[gewechat] start callback server: {callback_url}")
+        logger.info(f"[gewechat] start callback server: {callback_url}, using port {port}")
         urls = (path, "channel.gewechat.gewechat_channel.Query")
         app = web.application(urls, globals(), autoreload=False)
         web.httpserver.runsimple(app.wsgifunc(), ("0.0.0.0", port))
 
-    def send_voice2(self, receiver, content):
-        # 获取每段音频的时长
-        def get_segment_durations(file_paths):
-            from pydub import AudioSegment
-            durations = []
-            for path in file_paths:
-                audio = AudioSegment.from_file(path)
-                durations.append(len(audio))
-                return durations
+    # def send_voice2(self, receiver, content):
+    #     # 获取每段音频的时长
+    #     def get_segment_durations(file_paths):
+    #         from pydub import AudioSegment
+    #         durations = []
+    #         for path in file_paths:
+    #             audio = AudioSegment.from_file(path)
+    #             durations.append(len(audio))
+    #             return durations
+    #
+    #     # 分割音频文件
+    #     audio_length_ms, files = split_audio(content, 60 * 1000)
+    #     segment_durations = get_segment_durations(files)
+    #     for fcontent, s in zip(files, segment_durations):
+    #         print(f'{s}----语音时间---地址---{fcontent}')
+    #         silk_path = fcontent + '.silk'
+    #         duration = any_to_sil(fcontent, silk_path)
+    #         callback_url = conf().get("gewechat callback url")
+    #         silk_url = callback_url + "?file=" + silk_path
+    #         self.client.post_voice(self.app_id, receiver, silk_url, duration)
+    #         logger.info(f"[gewechat]发送语音内容 {receiver}: {silk_url}, 时间: {duration / 1000.0} 秒")
+    #         time.sleep(s / 1080)
 
-        # 分割音频文件
-        audio_length_ms, files = split_audio(content, 60 * 1000)
-        segment_durations = get_segment_durations(files)
-        for fcontent, s in zip(files, segment_durations):
-            print(f'{s}----语音时间---地址---{fcontent}')
-            silk_path = fcontent + '.silk'
-            duration = any_to_sil(fcontent, silk_path)
-            callback_url = conf().get("gewechat callback url")
-            silk_url = callback_url + "?file=" + silk_path
-            self.client.post_voice(self.app_id, receiver, silk_url, duration)
-            logger.info(f"[gewechat]发送语音内容 {receiver}: {silk_url}, 时间: {duration / 1000.0} 秒")
-            time.sleep(s / 1080)
-
-    def send_voice(self, to_wxid, reply_text):
-        vrc = pconf('voice_reply')
-        url = f"{vrc['voice_models'][vrc['voice_model_now']]}&text={reply_text}"
-        logger.info(f"[gewechat] 发送语音内容={reply_text}, 接收人={to_wxid},url = {url}")
-
-        # 将 WAV 文件转换为 SILK 格式
-        def convert_wav_to_silk(wav_file_path, silk_file_path=None):
-            """
-            将 WAV 文件转换为 SILK 格式
-            :param wav_file_path: 输入的 WAV 文件路径
-            :param silk_file_path: 输出的 SILK 文件路径（可选）
-            :return: 转换成功的 SILK 文件路径，或 None（转换失败）
-            """
-            try:
-                # 如果未指定输出路径，则自动生成
-                if silk_file_path is None:
-                    base_name = os.path.splitext(os.path.basename(wav_file_path))[0]
-                    silk_file_path = os.path.join(os.path.dirname(wav_file_path), f"{base_name}.silk")
-
-                # 分离文件名和扩展名
-                pcm_file_path = os.path.splitext(wav_file_path)[0] + ".pcm"
-
-                # WAV 转 PCM
-                with wave.open(wav_file_path, 'rb') as wav_file:
-                    params = wav_file.getparams()
-                    nchannels, sampwidth, framerate, nframes = params[:4]
-                    frames = wav_file.readframes(nframes)
-
-                # 将 WAV 数据解码为 PCM
-                pcm_data = struct.unpack(f"<{nframes * nchannels}h", frames)
-                # 保存为 PCM 文件
-                with open(pcm_file_path, 'wb') as pcm_file:
-                    pcm_file.write(struct.pack(f"<{len(pcm_data)}h", *pcm_data))
-
-                # PCM 转 Silk
-                duration = pilk.encode(pcm_file_path, silk_file_path, pcm_rate=framerate, tencent=True)
-
-                # 清理临时 PCM 文件
-                os.remove(pcm_file_path)
-
-                print(f"转换完成: {silk_file_path} (时长: {duration} 秒)")
-                return silk_file_path, duration
-
-            except Exception as e:
-                print(f"Error converting WAV to Silk: {str(e)}")
-                return None, None
-
-        try:
-            # 发起 GET 请求，下载文件
-            response = requests.get(url)
-            response.raise_for_status()  # 检查请求是否成功
-            fid = str(uuid.uuid4())
-            # 创建临时文件保存下载的 .wav 文件
-            temp_wav_path = f"{TmpDir().path()}wav_audio_{fid}.wav"
-            with open(temp_wav_path, "wb") as f:
-                f.write(response.content)
-
-            # 将 .wav 文件转换为 .silk 格式
-            temp_silk_path, voice_duration = convert_wav_to_silk(temp_wav_path)
-            silk_path = f"{conf().get('gewechat_callback_url')}?file={temp_silk_path}"
-            logger.info(f"返回 .silk gewechat_callback_url文件的路径: {silk_path}")
-            # 发送语音
-            if voice_duration > 60:
-                voice_duration = 60
-            self.client.post_voice(self.app_id, to_wxid, silk_path, voice_duration * 1000)
-            return silk_path
-
-        except Exception as e:
-            print(f"语音转换失败: {e}")
-            raise
-            # return None
+    # def send_voice(self, to_wxid, reply_text):
+    #     vrc = pconf('voice_reply')
+    #     url = f"{vrc['voice_models'][vrc['voice_model_now']]}&text={reply_text}"
+    #     logger.info(f"[gewechat] 发送语音内容={reply_text}, 接收人={to_wxid},url = {url}")
+    #
+    #     # 将 WAV 文件转换为 SILK 格式
+    #     def convert_wav_to_silk(wav_file_path, silk_file_path=None):
+    #         """
+    #         将 WAV 文件转换为 SILK 格式
+    #         :param wav_file_path: 输入的 WAV 文件路径
+    #         :param silk_file_path: 输出的 SILK 文件路径（可选）
+    #         :return: 转换成功的 SILK 文件路径，或 None（转换失败）
+    #         """
+    #         try:
+    #             # 如果未指定输出路径，则自动生成
+    #             if silk_file_path is None:
+    #                 base_name = os.path.splitext(os.path.basename(wav_file_path))[0]
+    #                 silk_file_path = os.path.join(os.path.dirname(wav_file_path), f"{base_name}.silk")
+    #
+    #             # 分离文件名和扩展名
+    #             pcm_file_path = os.path.splitext(wav_file_path)[0] + ".pcm"
+    #
+    #             # WAV 转 PCM
+    #             with wave.open(wav_file_path, 'rb') as wav_file:
+    #                 params = wav_file.getparams()
+    #                 nchannels, sampwidth, framerate, nframes = params[:4]
+    #                 frames = wav_file.readframes(nframes)
+    #
+    #             # 将 WAV 数据解码为 PCM
+    #             pcm_data = struct.unpack(f"<{nframes * nchannels}h", frames)
+    #             # 保存为 PCM 文件
+    #             with open(pcm_file_path, 'wb') as pcm_file:
+    #                 pcm_file.write(struct.pack(f"<{len(pcm_data)}h", *pcm_data))
+    #
+    #             # PCM 转 Silk
+    #             duration = pilk.encode(pcm_file_path, silk_file_path, pcm_rate=framerate, tencent=True)
+    #
+    #             # 清理临时 PCM 文件
+    #             os.remove(pcm_file_path)
+    #
+    #             print(f"转换完成: {silk_file_path} (时长: {duration} 秒)")
+    #             return silk_file_path, duration
+    #
+    #         except Exception as e:
+    #             print(f"Error converting WAV to Silk: {str(e)}")
+    #             return None, None
+    #
+    #     try:
+    #         # 发起 GET 请求，下载文件
+    #         response = requests.get(url)
+    #         response.raise_for_status()  # 检查请求是否成功
+    #         fid = str(uuid.uuid4())
+    #         # 创建临时文件保存下载的 .wav 文件
+    #         temp_wav_path = f"{TmpDir().path()}wav_audio_{fid}.wav"
+    #         with open(temp_wav_path, "wb") as f:
+    #             f.write(response.content)
+    #
+    #         # 将 .wav 文件转换为 .silk 格式
+    #         temp_silk_path, voice_duration = convert_wav_to_silk(temp_wav_path)
+    #         silk_path = f"{conf().get('gewechat_callback_url')}?file={temp_silk_path}"
+    #         logger.info(f"返回 .silk gewechat_callback_url文件的路径: {silk_path}")
+    #         # 发送语音
+    #         if voice_duration > 60:
+    #             voice_duration = 60
+    #         self.client.post_voice(self.app_id, to_wxid, silk_path, voice_duration * 1000)
+    #         return silk_path
+    #
+    #     except Exception as e:
+    #         print(f"语音转换失败: {e}")
+    #         raise
+    #         # return None
 
     def send_video(self, to_wxid, video_url):
 
@@ -282,6 +337,19 @@ class GeWeChatChannel(ChatChannel):
             logger.error(f"[gewechat] send video error: {e}")
             return None
 
+    def get_segment_durations(self, file_paths):
+        """
+        获取每段音频的时长
+        :param file_paths: 分段文件路径列表
+        :return: 每段时长列表（毫秒）
+        """
+        from pydub import AudioSegment
+        durations = []
+        for path in file_paths:
+            audio = AudioSegment.from_file(path)
+            durations.append(len(audio))
+        return durations
+
     def send(self, reply: Reply, context: Context):
         receiver = context["receiver"]
         gewechat_message = context.get("msg")
@@ -295,19 +363,101 @@ class GeWeChatChannel(ChatChannel):
         elif reply.type == ReplyType.VOICE:
             try:
                 content = reply.content
-                if content.endswith('.mp3'):
-                    # 如果是mp3文件，转换为silk格式
-                    silk_path = content + '.silk'
-                    duration = mp3_to_silk(content, silk_path)
-                    callback_url = conf().get("gewechat_callback_url")
-                    silk_url = callback_url + "?file=" + silk_path
-                    self.client.post_voice(self.app_id, receiver, silk_url, duration)
-                    logger.info(f"[gewechat] Do send voice to {receiver}: {silk_url}, duration: {duration/1000.0} seconds")
+                if not content or not os.path.exists(content):
+                    logger.error(f"[gewechat] 语音文件未找到: {content}")
                     return
-                else:
-                    logger.error(f"[gewechat] voice file is not mp3, path: {content}, only support mp3")
+
+                if not content.endswith('.mp3'):
+                    logger.error(f"[gewechat] 仅支持MP3格式: {content}")
+                    return
+
+                # 创建临时文件列表用于后续清理
+                temp_files = []
+
+                try:
+                    # 分割音频文件
+                    audio_length_ms, files = split_audio(content, 60 * 1000)
+                    if not files:
+                        logger.error("[gewechat] 音频分割失败")
+                        return
+
+                    temp_files.extend(files)  # 添加分割后的文件到清理列表
+                    logger.info(f"[gewechat] 音频分割完成，共 {len(files)} 段")
+
+                    # 获取每段时长
+                    segment_durations = self.get_segment_durations(files)
+                    tmp_dir = TmpDir().path()
+
+                    # 预先转换所有文件
+                    silk_files = []
+                    callback_url = conf().get("gewechat_callback_url")
+
+                    for i, fcontent in enumerate(files, 1):
+                        try:
+                            # 转换为SILK格式
+                            silk_name = f"{os.path.basename(fcontent)}_{i}.silk"
+                            silk_path = os.path.join(tmp_dir, silk_name)
+                            temp_files.append(silk_path)
+
+                            duration = mp3_to_silk(fcontent, silk_path)
+                            if duration > 0 and os.path.exists(silk_path):
+                                silk_url = callback_url + "?file=" + silk_path
+                                silk_files.append((silk_url, duration))
+                                logger.info(f"[gewechat] 第 {i} 段转换成功，时长: {duration / 1000:.1f}秒")
+                            else:
+                                raise Exception(f"转换失败: {fcontent}")
+
+                        except Exception as e:
+                            logger.error(f"[gewechat] 第 {i} 段转换失败: {e}")
+                            return
+
+                    # 发送所有语音片段
+                    for i, (silk_url, duration) in enumerate(silk_files, 1):
+                        try:
+                            self.client.post_voice(self.app_id, receiver, silk_url, duration)
+                            logger.info(f"[gewechat] 发送第 {i}/{len(silk_files)} 段语音")
+
+                            # 固定0.3秒的发送间隔
+                            if i < len(silk_files):
+                                time.sleep(0.3)
+
+                        except Exception as e:
+                            logger.error(f"[gewechat] 发送第 {i} 段语音失败: {e}")
+                            continue
+
+                finally:
+                    # 清理所有临时文件
+                    for temp_file in temp_files:
+                        try:
+                            if os.path.exists(temp_file):
+                                os.remove(temp_file)
+                                logger.debug(f"[gewechat] 清理临时文件: {temp_file}")
+                        except Exception as e:
+                            logger.warning(f"[gewechat] 清理文件失败 {temp_file}: {e}")
             except Exception as e:
                 logger.error(f"[gewechat] send voice failed: {e}")
+        elif reply.type == ReplyType.APP:
+            try:
+                logger.info("[gewechat] APP message raw content type: {}, content: {}".format(type(reply.content), reply.content))
+
+                # 直接使用 XML 内容
+                if not isinstance(reply.content, str):
+                    logger.error(f"[gewechat] send app message failed: content must be XML string, got type={type(reply.content)}")
+                    return
+
+                if not reply.content.strip():
+                    logger.error("[gewechat] send app message failed: content is empty string")
+                    return
+
+                # 直接发送 appmsg 内容
+                result = self.client.post_app_msg(self.app_id, receiver, reply.content)
+                logger.info("[gewechat] sendApp, receiver={}, content={}, result={}".format(
+                    receiver, reply.content, result))
+                return result
+
+            except Exception as e:
+                logger.error(f"[gewechat] send app message failed: {str(e)}")
+                return
         elif reply.type == ReplyType.IMAGE_URL or reply.type == ReplyType.IMAGE:
             image_storage = reply.content
             if reply.type == ReplyType.IMAGE_URL:
@@ -359,6 +509,7 @@ class GeWeChatChannel(ChatChannel):
         elif reply.type == ReplyType.VIDEO_URL:  # 视频
             logger.info(f"[gewechat] 发送视频{reply.content}，接收者={receiver}")
             self.send_video(receiver, reply.content)
+
 
 class Query:
     def GET(self):
