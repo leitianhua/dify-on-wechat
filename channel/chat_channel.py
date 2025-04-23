@@ -183,6 +183,11 @@ class ChatChannel(Channel):
         # reply的构建步骤
         reply = self._generate_reply(context)
 
+        # 如果reply为None，表示没有配置有效的模型，不进行回复
+        if reply is None:
+            logger.info("[chat_channel] No reply generated, skipping response")
+            return
+
         logger.debug("[chat_channel] ready to decorate reply: {}".format(reply))
 
         # reply的包装步骤
@@ -205,6 +210,10 @@ class ChatChannel(Channel):
             if context.type == ContextType.TEXT or context.type == ContextType.IMAGE_CREATE:  # 文字和图片消息
                 context["channel"] = e_context["channel"]
                 reply = super().build_reply_content(context.content, context)
+                # 如果返回None，说明没有配置有效的聊天模型，直接返回None
+                if reply is None:
+                    logger.info("[chat_channel] build_reply_content returned None, no valid chat model configured")
+                    return None
             elif context.type == ContextType.VOICE:  # 语音消息
                 cmsg = context["msg"]
                 cmsg.prepare()
@@ -226,10 +235,13 @@ class ChatChannel(Channel):
                     pass
                     # logger.warning("[chat_channel]delete temp file error: " + str(e))
 
-                if reply.type == ReplyType.TEXT:
+                if reply and reply.type == ReplyType.TEXT:
                     new_context = self._compose_context(ContextType.TEXT, reply.content, **context.kwargs)
                     if new_context:
                         reply = self._generate_reply(new_context)
+                        # 如果返回None，说明没有配置有效的聊天模型，直接返回None
+                        if reply is None:
+                            return None
                     else:
                         return
             elif context.type == ContextType.IMAGE:  # 图片消息，当前仅做下载保存到本地的逻辑
@@ -267,8 +279,12 @@ class ChatChannel(Channel):
                 if reply.type == ReplyType.TEXT:
                     reply_text = reply.content
                     if desire_rtype == ReplyType.VOICE and ReplyType.VOICE not in self.NOT_SUPPORT_REPLYTYPE:
-                        reply = super().build_text_to_voice(reply.content)
-                        return self._decorate_reply(context, reply)
+                        voice_reply = super().build_text_to_voice(reply.content)
+                        # 如果语音转换返回None，继续使用文本回复
+                        if voice_reply is None:
+                            logger.warning("[chat_channel] Text to voice conversion failed, using text reply instead")
+                        else:
+                            return self._decorate_reply(context, voice_reply)
                     if context.get("isgroup", False):
                         if not conf().get("no_need_at", False):
                             reply_text = "@" + context["msg"].actual_user_nickname + "\n" + reply_text.strip()

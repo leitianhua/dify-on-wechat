@@ -4,6 +4,10 @@
             "enabled": true,
             "priority": 999
         },
+        "JinaSum": {
+            "enabled": true,
+            "priority": 101
+        },
         "media_parser": {
             "enabled": true,
             "priority": 100
@@ -40,14 +44,15 @@
             "enabled": false,
             "priority": 88
         },
-        "Apilot": {
+        "PollinationsDraw": {
             "enabled": true,
             "priority": 88
         },
-        "JinaSum": {
-            "enabled": false,
-            "priority": 10
+        "PollinationsChat": {
+            "enabled": true,
+            "priority": 88
         },
+
         "voice_reply": {
             "enabled": false,
             "priority": 6

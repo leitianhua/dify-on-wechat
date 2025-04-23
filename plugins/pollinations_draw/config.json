@@ -1,0 +1,19 @@
+{
+    "image_prompt_prefix": [
+        "p画",
+        "p生成图片"
+    ],
+    "list_models_prefix": [
+        "p模型"
+    ],
+    "model_switch_prefix": [
+        "p切换模型"
+    ],
+    "random_generation_enabled": true,
+    "default_image_model": "flux",
+    "default_width": 704,
+    "default_height": 704,
+    "default_seed": 43,
+    "nologo": true,
+    "show_prompt_in_image_result": true
+}

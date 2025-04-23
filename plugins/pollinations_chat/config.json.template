@@ -1,0 +1,14 @@
+{
+    "chat_prefix": ["p问", "p聊"],
+    "voice_toggle_prefix": ["p语音开关"],
+    "voice_set_prefix": ["p设置语音"],
+    "clear_memory_prefix": ["p清除记忆"],
+    "enable_voice": false,
+    "default_voice": "alloy",
+    "enable_memory": true,
+    "max_history": 10,
+    "api_params": {
+        "model": "openai",
+        "system": "你是个乐于助人的ai助手"
+    }
+} 

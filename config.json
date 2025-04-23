@@ -1,5 +1,5 @@
 {
-    "debug": true,
+    "debug": false,
     "accept_friend_commands": [
         "加好友",
         "ALL_FRIEND",
@@ -35,7 +35,7 @@
     ],
     "hot_reload": false,
     "image_recognition": true,
-    "model": "coze11",
+    "model": "",
     "moonshot_api_key": "sk-wIDyiyCnsuukJIq2EbPIV8bi0zL3qPUvX509CigkfwsnfnfK",
     "open_ai_api_base": "http://192.168.8.181:8000/v1",
     "open_ai_api_key": "sk-2e55fda130354dd2a831bef86f6efa18",
