@@ -40,9 +40,9 @@
             "enabled": false,
             "priority": 99
         },
-        "sakuraTools": {
-            "enabled": false,
-            "priority": 88
+        "HotGirlsPlugin": {
+            "enabled": true,
+            "priority": 99
         },
         "PollinationsDraw": {
             "enabled": true,

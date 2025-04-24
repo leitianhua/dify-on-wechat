@@ -27,10 +27,10 @@ class Weather(Plugin):
             self.conf = super().load_config()
             self.condition_2_and_3_cities = None  # 天气查询，存储重复城市信息
             if not self.conf:
-                logger.warn("[Weather] inited but alapi_token not found in config")
+                logger.warn("[Weather] 已初始化，但在配置中找不到alapi_token")
                 self.alapi_token = None
             else:
-                logger.info("[Weather] inited and alapi_token loaded successfully")
+                logger.info("[Weather] 已初始化，成功加载alapi_token")
                 self.alapi_token = self.conf["alapi_token"]
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
         except Exception as e:
