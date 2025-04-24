@@ -1,5 +1,0 @@
-Pillow
-requests
-pytz
-lunar-python
-zhdate
